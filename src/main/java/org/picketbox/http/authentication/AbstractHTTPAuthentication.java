@@ -37,7 +37,7 @@ import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.authentication.AuthenticationCallbackHandler;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.exceptions.AuthenticationException;
-import org.picketbox.http.PicketBoxManager;
+import org.picketbox.http.PicketBoxHTTPManager;
 
 /**
  * Base class for all the HTTP authentication schemes
@@ -49,7 +49,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
 
     private RequestCache requestCache = new RequestCache();
 
-    private PicketBoxManager picketBoxManager;
+    private PicketBoxHTTPManager picketBoxManager;
 
     /**
      * Injectable realm name
@@ -73,7 +73,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
      */
     protected String formErrorPage = "/error.jsp";
 
-    public void setPicketBoxManager(PicketBoxManager picketBoxManager) {
+    public void setPicketBoxManager(PicketBoxHTTPManager picketBoxManager) {
         this.picketBoxManager = picketBoxManager;
     }
 

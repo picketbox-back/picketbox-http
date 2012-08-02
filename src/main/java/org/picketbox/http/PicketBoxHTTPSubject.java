@@ -19,35 +19,32 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketbox.http.authentication;
 
-import java.security.Principal;
+package org.picketbox.http;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpSessionListener;
+import javax.servlet.http.HttpSession;
 
-import org.picketbox.core.exceptions.AuthenticationException;
-import org.picketbox.http.PicketBoxHTTPManager;
+import org.picketbox.core.PicketBoxSubject;
 
 /**
- * HTTP Authentication Scheme
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
- * @author anil saldhana
- * @since Jul 6, 2012
  */
-public interface HTTPAuthenticationScheme extends HttpSessionListener {
-    String REALM = "PicketBox Realm";
+public class PicketBoxHTTPSubject extends PicketBoxSubject {
+
+    private HttpSession session;
 
     /**
-     * Authenticate an user
-     *
-     * @param servletReq
-     * @param servletResp
-     * @return
-     * @throws AuthenticationException
+     * @return the session
      */
-    Principal authenticate(ServletRequest servletReq, ServletResponse servletResp) throws AuthenticationException;
+    public HttpSession getSession() {
+        return session;
+    }
 
-    void setPicketBoxManager(PicketBoxHTTPManager securityManager);
+    /**
+     * @param session the session to set
+     */
+    public void setSession(HttpSession session) {
+        this.session = session;
+    }
 }

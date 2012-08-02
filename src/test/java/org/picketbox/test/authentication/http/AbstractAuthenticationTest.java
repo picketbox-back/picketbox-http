@@ -21,7 +21,8 @@
  */
 package org.picketbox.test.authentication.http;
 
-import org.picketbox.http.config.PicketBoxConfiguration;
+import org.picketbox.core.config.PicketBoxConfiguration;
+import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.resource.HTTPProtectedResourceManager;
 
 /**
@@ -34,6 +35,7 @@ public class AbstractAuthenticationTest {
     
     public void initialize() throws Exception{
         configuration = new PicketBoxConfiguration();
+        configuration.manager(new PicketBoxHTTPManager());
         configuration.setProtectedResourceManager(new HTTPProtectedResourceManager());
     }
 
