@@ -32,6 +32,17 @@ import java.security.PrivilegedAction;
  */
 class SecurityActions {
 
+    static ClassLoader getClassLoader(final Class<?> theClass) {
+        if (System.getSecurityManager() == null) {
+            return theClass.getClassLoader();
+        }
+        return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            public ClassLoader run() {
+                return theClass.getClassLoader();
+            }
+        });
+    }
+
     static Object instance(final Class<?> theClass, final String fqn) {
         try {
             Class<?> clazz = loadClass(theClass, fqn);
@@ -44,6 +55,17 @@ class SecurityActions {
     }
 
     static Class<?> loadClass(final Class<?> theClass, final String fqn) {
+        if (System.getSecurityManager() == null) {
+            ClassLoader classLoader = theClass.getClassLoader();
+
+            Class<?> clazz = loadClass(classLoader, fqn);
+            if (clazz == null) {
+                classLoader = Thread.currentThread().getContextClassLoader();
+                clazz = loadClass(classLoader, fqn);
+            }
+            return clazz;
+        }
+
         return AccessController.doPrivileged(new PrivilegedAction<Class<?>>() {
             public Class<?> run() {
                 ClassLoader classLoader = theClass.getClassLoader();
@@ -59,6 +81,13 @@ class SecurityActions {
     }
 
     static Class<?> loadClass(final ClassLoader cl, final String fqn) {
+        if (System.getSecurityManager() == null) {
+            try {
+                return cl.loadClass(fqn);
+            } catch (ClassNotFoundException e) {
+            }
+            return null;
+        }
         return AccessController.doPrivileged(new PrivilegedAction<Class<?>>() {
             public Class<?> run() {
                 try {
@@ -78,6 +107,9 @@ class SecurityActions {
      * @return
      */
     static String getSystemProperty(final String key, final String defaultValue) {
+        if (System.getSecurityManager() == null) {
+            return System.getProperty(key, defaultValue);
+        }
         return AccessController.doPrivileged(new PrivilegedAction<String>() {
             public String run() {
                 return System.getProperty(key, defaultValue);
