@@ -33,6 +33,7 @@ import org.picketbox.core.resource.ProtectedResourceManager;
 import org.picketbox.http.PicketBoxHTTPMessages;
 import org.picketbox.http.PicketBoxManager;
 import org.picketbox.http.logout.HTTPLogoutManager;
+import org.picketbox.http.resource.HTTPProtectedResourceManager;
 
 /**
  * <p>
@@ -114,6 +115,10 @@ public final class PicketBoxConfiguration {
         try {
             if (this.logoutManager == null) {
                 this.logoutManager = new HTTPLogoutManager();
+            }
+
+            if (this.protectedResourceManager == null) {
+                this.protectedResourceManager = new HTTPProtectedResourceManager();
             }
 
             this.picketBoxManager = new PicketBoxManager(this.authConfig.build(), this.logoutManager,
