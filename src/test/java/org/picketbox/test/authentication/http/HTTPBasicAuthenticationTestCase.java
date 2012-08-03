@@ -36,6 +36,7 @@ import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.authentication.impl.UserNamePasswordMechanism;
 import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticationManager;
 import org.picketbox.core.util.Base64;
+import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPBasicAuthentication;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
@@ -54,9 +55,8 @@ public class HTTPBasicAuthenticationTestCase extends AbstractAuthenticationTest 
     public void setup() throws Exception {
         super.initialize();        
         httpBasic = new HTTPBasicAuthentication();
-        configuration.authentication().addMechanism(new UserNamePasswordMechanism());
         configuration.authentication().addAuthManager(new PropertiesFileBasedAuthenticationManager());
-        httpBasic.setPicketBoxManager(configuration.buildAndStart());
+        httpBasic.setPicketBoxManager((PicketBoxHTTPManager) configuration.buildAndStart());
 
     }
 

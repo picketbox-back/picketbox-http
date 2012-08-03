@@ -39,6 +39,7 @@ import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticati
 import org.picketbox.core.exceptions.FormatException;
 import org.picketbox.core.util.Base64;
 import org.picketbox.core.util.HTTPDigestUtil;
+import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPDigestAuthentication;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
@@ -61,10 +62,9 @@ public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest
         httpDigest.setRealmName("testrealm@host.com");
         httpDigest.setOpaque("5ccc069c403ebaf9f0171e9517f40e41");
  
-        configuration.authentication().addMechanism(new DigestMechanism());
         configuration.authentication().addAuthManager(new PropertiesFileBasedAuthenticationManager());
 
-        httpDigest.setPicketBoxManager(configuration.buildAndStart());
+        httpDigest.setPicketBoxManager((PicketBoxHTTPManager) configuration.buildAndStart());
     }
 
     @Test
