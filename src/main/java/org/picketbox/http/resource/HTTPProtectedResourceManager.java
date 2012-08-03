@@ -34,13 +34,14 @@ import org.picketbox.core.resource.AbstractProtectedResourceManager;
 import org.picketbox.core.resource.ProtectedResource;
 import org.picketbox.core.resource.ProtectedResourceConstraint;
 import org.picketbox.core.resource.ProtectedResourceManager;
+import org.picketbox.http.authorization.resource.WebResource;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
 public class HTTPProtectedResourceManager extends AbstractProtectedResourceManager implements
-        ProtectedResourceManager<HttpServletRequest> {
+        ProtectedResourceManager<WebResource> {
 
     private List<ProtectedResource> resources = new ArrayList<ProtectedResource>();
 
@@ -67,10 +68,10 @@ public class HTTPProtectedResourceManager extends AbstractProtectedResourceManag
      * @param servletReq
      * @return
      */
-    public ProtectedResource getProtectedResource(HttpServletRequest servletReq) {
+    public ProtectedResource getProtectedResource(WebResource servletReq) {
         checkIfStarted();
 
-        String requestURI = servletReq.getRequestURI().substring(servletReq.getContextPath().length());
+        String requestURI = servletReq.getRequest().getRequestURI().substring(servletReq.getRequest().getContextPath().length());
 
         for (ProtectedResource resource : this.resources) {
             if (resource.matches(requestURI)) {

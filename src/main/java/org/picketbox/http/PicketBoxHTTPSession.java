@@ -19,35 +19,41 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketbox.http.authentication;
 
-import java.security.Principal;
+package org.picketbox.http;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpSessionListener;
+import javax.servlet.http.HttpSession;
 
-import org.picketbox.core.exceptions.AuthenticationException;
-import org.picketbox.http.PicketBoxHTTPManager;
+import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.session.PicketBoxSession;
 
 /**
- * HTTP Authentication Scheme
+ * <p>This class is a {@link PicketBoxSession} implementation that encapsulates a {@link HttpSession}.</p>
  *
- * @author anil saldhana
- * @since Jul 6, 2012
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  */
-public interface HTTPAuthenticationScheme extends HttpSessionListener {
-    String REALM = "PicketBox Realm";
+public class PicketBoxHTTPSession extends PicketBoxSession {
 
-    /**
-     * Authenticate an user
-     *
-     * @param servletReq
-     * @param servletResp
-     * @return
-     * @throws AuthenticationException
+    private HttpSession httpSession;
+    private PicketBoxSubject subject;
+
+    public PicketBoxHTTPSession(PicketBoxSubject subject, HttpSession httpSession) {
+        this.httpSession = httpSession;
+        this.subject = subject;
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.session.PicketBoxSession#expire()
      */
-    Principal authenticate(ServletRequest servletReq, ServletResponse servletResp) throws AuthenticationException;
+    @Override
+    public void expire() {
+        super.expire();
+        this.httpSession.invalidate();
+    }
 
-    void setPicketBoxManager(PicketBoxHTTPManager securityManager);
+    public PicketBoxSubject getSubject() {
+        return this.subject;
+    }
+
 }
