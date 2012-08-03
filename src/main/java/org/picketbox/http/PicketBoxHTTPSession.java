@@ -22,12 +22,31 @@
 
 package org.picketbox.http;
 
+import javax.servlet.http.HttpSession;
+
 import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.session.PicketBoxSession;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
-public class PicketBoxHTTPSubject extends PicketBoxSubject {
+public class PicketBoxHTTPSession extends PicketBoxSession {
+
+    private PicketBoxSubject subject;
+    private HttpSession httpSession;
+
+    public PicketBoxHTTPSession(PicketBoxSubject subject, HttpSession httpSession) {
+        this.httpSession = httpSession;
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.session.PicketBoxSession#expire()
+     */
+    @Override
+    public void expire() {
+        super.expire();
+        this.httpSession.invalidate();
+    }
 
 }

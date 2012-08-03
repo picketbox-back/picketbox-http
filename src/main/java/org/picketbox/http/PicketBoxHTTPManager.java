@@ -23,12 +23,12 @@
 package org.picketbox.http;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.picketbox.core.AbstractPicketBoxManager;
+import org.picketbox.core.PicketBoxSecurityContext;
 import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.resource.ProtectedResource;
-import org.picketbox.http.authorization.resource.WebResource;
 
 /**
  * <p>
@@ -39,32 +39,45 @@ import org.picketbox.http.authorization.resource.WebResource;
  */
 public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
 
-    /**
-     * <p>
-     * Checks if the specified {@link HttpServletRequest} instance is from an authenticated user.
-     * </p>
-     *
-     * @param servletReq
-     * @return true if the request came from an authenticated user.
+    /* (non-Javadoc)
+     * @see org.picketbox.core.AbstractPicketBoxManager#doCreateSession(org.picketbox.core.PicketBoxSubject, org.picketbox.core.PicketBoxSecurityContext)
      */
-    public boolean isAuthenticated(HttpServletRequest servletReq) {
-        return getAuthenticatedUser(servletReq) != null;
-    }
-
-    /**
-     * Get the Authenticated User
-     *
-     * @param servletReq
-     * @return
-     */
-    public PicketBoxSubject getAuthenticatedUser(HttpServletRequest servletReq) {
-        checkIfStarted();
-
-        if (servletReq.getSession(false) == null) {
-            return null;
+    @Override
+    protected PicketBoxHTTPSession doCreateSession(PicketBoxSubject resultingSubject, PicketBoxSecurityContext securityContext) {
+        if (!(securityContext instanceof PicketBoxHTTPSecurityContext)) {
+            throw new IllegalArgumentException("Wrong security context type. Expected an instance of " + PicketBoxHTTPSecurityContext.class);
         }
 
-        return (PicketBoxSubject) servletReq.getSession(false).getAttribute(PicketBoxConstants.SUBJECT);
+        PicketBoxHTTPSecurityContext httpSecurityContext = (PicketBoxHTTPSecurityContext) securityContext;
+        HttpSession httpSession = httpSecurityContext.getRequest().getSession(false);
+
+        httpSession.setAttribute(PicketBoxConstants.SUBJECT, resultingSubject);
+
+        return new PicketBoxHTTPSession(resultingSubject, httpSession);
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.PicketBoxManager#createSubject(org.picketbox.core.PicketBoxSecurityContext)
+     */
+    @Override
+    public PicketBoxSubject createSubject(PicketBoxSecurityContext securityContext) {
+        if (!(securityContext instanceof PicketBoxHTTPSecurityContext)) {
+            throw new IllegalArgumentException("Wrong security context type. Expected an instance of " + PicketBoxHTTPSecurityContext.class);
+        }
+
+        PicketBoxHTTPSecurityContext httpSecurityContext = (PicketBoxHTTPSecurityContext) securityContext;
+
+        HttpSession session = httpSecurityContext.getRequest().getSession(false);
+
+        if (session != null) {
+            PicketBoxSubject subject = (PicketBoxSubject) session.getAttribute(PicketBoxConstants.SUBJECT);
+
+            if (subject != null) {
+                return subject;
+            }
+        }
+
+        return new PicketBoxHTTPSubject();
     }
 
 }
