@@ -28,6 +28,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.picketbox.core.PicketBoxSecurityContext;
 
 /**
+ * <p>
+ * This class represents the security context for web applications encapsulating the {@link HttpServletRequest} and
+ * {@link HttpServletResponse}.
+ * </p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */

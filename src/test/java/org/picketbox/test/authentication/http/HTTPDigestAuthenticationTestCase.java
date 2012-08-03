@@ -34,7 +34,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.authentication.DigestHolder;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.impl.DigestMechanism;
 import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticationManager;
 import org.picketbox.core.exceptions.FormatException;
 import org.picketbox.core.util.Base64;

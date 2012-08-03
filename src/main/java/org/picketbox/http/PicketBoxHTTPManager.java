@@ -22,17 +22,17 @@
 
 package org.picketbox.http;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.picketbox.core.AbstractPicketBoxManager;
+import org.picketbox.core.PicketBoxManager;
 import org.picketbox.core.PicketBoxSecurityContext;
 import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.authentication.PicketBoxConstants;
 
 /**
  * <p>
- * This class acts as a <i>Facade</i> for the PicketBox Security capabilites.
+ * {@link PicketBoxManager} implementation to be used by web applications.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -40,10 +40,10 @@ import org.picketbox.core.authentication.PicketBoxConstants;
 public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
 
     /* (non-Javadoc)
-     * @see org.picketbox.core.AbstractPicketBoxManager#doCreateSession(org.picketbox.core.PicketBoxSubject, org.picketbox.core.PicketBoxSecurityContext)
+     * @see org.picketbox.core.AbstractPicketBoxManager#doCreateSession(org.picketbox.core.PicketBoxSecurityContext, org.picketbox.core.PicketBoxSubject)
      */
     @Override
-    protected PicketBoxHTTPSession doCreateSession(PicketBoxSubject resultingSubject, PicketBoxSecurityContext securityContext) {
+    protected PicketBoxHTTPSession doCreateSession(PicketBoxSecurityContext securityContext, PicketBoxSubject resultingSubject) {
         if (!(securityContext instanceof PicketBoxHTTPSecurityContext)) {
             throw new IllegalArgumentException("Wrong security context type. Expected an instance of " + PicketBoxHTTPSecurityContext.class);
         }

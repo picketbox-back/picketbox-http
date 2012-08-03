@@ -28,16 +28,19 @@ import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.session.PicketBoxSession;
 
 /**
+ * <p>This class is a {@link PicketBoxSession} implementation that encapsulates a {@link HttpSession}.</p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
 public class PicketBoxHTTPSession extends PicketBoxSession {
 
-    private PicketBoxSubject subject;
     private HttpSession httpSession;
+    private PicketBoxSubject subject;
 
     public PicketBoxHTTPSession(PicketBoxSubject subject, HttpSession httpSession) {
         this.httpSession = httpSession;
+        this.subject = subject;
     }
 
     /* (non-Javadoc)
@@ -47,6 +50,10 @@ public class PicketBoxHTTPSession extends PicketBoxSession {
     public void expire() {
         super.expire();
         this.httpSession.invalidate();
+    }
+
+    public PicketBoxSubject getSubject() {
+        return this.subject;
     }
 
 }

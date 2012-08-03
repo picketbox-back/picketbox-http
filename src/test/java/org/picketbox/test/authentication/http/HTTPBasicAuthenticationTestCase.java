@@ -33,7 +33,6 @@ import java.security.Principal;
 import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.impl.UserNamePasswordMechanism;
 import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticationManager;
 import org.picketbox.core.util.Base64;
 import org.picketbox.http.PicketBoxHTTPManager;

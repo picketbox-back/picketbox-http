@@ -25,9 +25,13 @@ package org.picketbox.http;
 import org.picketbox.core.PicketBoxSubject;
 
 /**
+ * <p>{@link PicketBoxSubject} implementation for web applications.</p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
 public class PicketBoxHTTPSubject extends PicketBoxSubject {
+
+    private static final long serialVersionUID = 1L;
 
 }

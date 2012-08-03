@@ -156,7 +156,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
 
         PicketBoxSubject subject = this.picketBoxManager.authenticate(new PicketBoxHTTPSecurityContext(request, response), authenticationCallbackHandler);
 
-        if (subject != null) {
+        if (subject != null && subject.isAuthenticated()) {
             // remove from the cache the saved request and store it in the session for further use.
             SavedRequest savedRequest = this.requestCache.removeAndStoreSavedRequestInSession(request);
             String requestedURI = null;
