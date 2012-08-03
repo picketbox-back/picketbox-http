@@ -35,26 +35,28 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.picketbox.core.PicketBoxManager;
+import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.authentication.AuthenticationManager;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.impl.CertificateMechanism;
-import org.picketbox.core.authentication.impl.DigestMechanism;
-import org.picketbox.core.authentication.impl.UserNamePasswordMechanism;
 import org.picketbox.core.authentication.manager.DatabaseAuthenticationManager;
 import org.picketbox.core.authentication.manager.LDAPAuthenticationManager;
 import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticationManager;
 import org.picketbox.core.authentication.manager.SimpleCredentialAuthenticationManager;
 import org.picketbox.core.authorization.AuthorizationManager;
 import org.picketbox.core.authorization.impl.SimpleAuthorizationManager;
+import org.picketbox.core.config.PicketBoxConfiguration;
 import org.picketbox.core.exceptions.AuthenticationException;
+import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.PicketBoxHTTPMessages;
-import org.picketbox.http.PicketBoxManager;
+import org.picketbox.http.PicketBoxHTTPSecurityContext;
 import org.picketbox.http.authentication.HTTPAuthenticationScheme;
 import org.picketbox.http.authentication.HTTPBasicAuthentication;
 import org.picketbox.http.authentication.HTTPClientCertAuthentication;
 import org.picketbox.http.authentication.HTTPDigestAuthentication;
 import org.picketbox.http.authentication.HTTPFormAuthentication;
-import org.picketbox.http.config.PicketBoxConfiguration;
+import org.picketbox.http.authorization.resource.WebResource;
+import org.picketbox.http.logout.HTTPLogoutManager;
 import org.picketbox.http.resource.HTTPProtectedResourceManager;
 
 /**
@@ -122,9 +124,8 @@ public class DelegatingSecurityFilter implements Filter {
 
         PicketBoxConfiguration configuration = new PicketBoxConfiguration();
 
-        configuration.authentication().addMechanism(new UserNamePasswordMechanism()).addMechanism(new DigestMechanism())
-                .addMechanism(new CertificateMechanism());
-
+        configuration.manager(new PicketBoxHTTPManager());
+        configuration.logoutManager(new HTTPLogoutManager());
         configuration.authentication().addAuthManager(am);
         configuration.authorization(authorizationManager);
 
@@ -132,7 +133,7 @@ public class DelegatingSecurityFilter implements Filter {
 
         this.securityManager = configuration.buildAndStart();
 
-        authenticationScheme.setPicketBoxManager(this.securityManager);
+        authenticationScheme.setPicketBoxManager((PicketBoxHTTPManager) this.securityManager);
 
         sc.setAttribute(PicketBoxConstants.PICKETBOX_MANAGER, this.securityManager);
     }
@@ -155,7 +156,7 @@ public class DelegatingSecurityFilter implements Filter {
     }
 
     private void authorize(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
-        boolean authorize = this.securityManager.authorize(httpRequest, httpResponse);
+        boolean authorize = this.securityManager.authorize(getAuthenticatedUser(httpRequest, httpResponse), createWebResource(httpRequest, httpResponse));
 
         if (!authorize) {
             if (!httpResponse.isCommitted()) {
@@ -164,13 +165,26 @@ public class DelegatingSecurityFilter implements Filter {
         }
     }
 
+    private WebResource createWebResource(HttpServletRequest request, HttpServletResponse response) {
+        WebResource resource = new WebResource();
+
+        resource.setContext(request.getServletContext());
+        resource.setRequest(request);
+        resource.setResponse(response);
+
+        return resource;
+    }
+
+    public PicketBoxSubject getAuthenticatedUser(HttpServletRequest request, HttpServletResponse response) {
+        return this.securityManager.createSubject(new PicketBoxHTTPSecurityContext(request, response));
+    }
+
     private void authenticate(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ServletException {
         if (httpResponse.isCommitted()) {
             return;
         }
 
         try {
-            // this.securityManager.authenticate(httpRequest, httpResponse);
             this.authenticationScheme.authenticate(httpRequest, httpResponse);
         } catch (AuthenticationException e) {
             throw new ServletException(e);
@@ -178,7 +192,26 @@ public class DelegatingSecurityFilter implements Filter {
     }
 
     private void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ServletException {
-        this.securityManager.logout(httpRequest, httpResponse);
+        if (isLogoutRequest(httpRequest)) {
+            this.securityManager.logout(getAuthenticatedUser(httpRequest, httpResponse));
+            try {
+                httpResponse.sendRedirect(httpRequest.getContextPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * <p>
+     * Checks if the request is asking for a logout.
+     * </p>
+     *
+     * @param request
+     * @return
+     */
+    private boolean isLogoutRequest(HttpServletRequest request) {
+        return request.getRequestURI().contains(PicketBoxConstants.LOGOUT_URI);
     }
 
     @Override

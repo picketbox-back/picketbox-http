@@ -35,9 +35,9 @@ import javax.servlet.http.HttpSessionEvent;
 
 import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.authentication.AuthenticationCallbackHandler;
-import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.exceptions.AuthenticationException;
-import org.picketbox.http.PicketBoxManager;
+import org.picketbox.http.PicketBoxHTTPManager;
+import org.picketbox.http.PicketBoxHTTPSecurityContext;
 
 /**
  * Base class for all the HTTP authentication schemes
@@ -49,7 +49,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
 
     private RequestCache requestCache = new RequestCache();
 
-    private PicketBoxManager picketBoxManager;
+    private PicketBoxHTTPManager picketBoxManager;
 
     /**
      * Injectable realm name
@@ -73,7 +73,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
      */
     protected String formErrorPage = "/error.jsp";
 
-    public void setPicketBoxManager(PicketBoxManager picketBoxManager) {
+    public void setPicketBoxManager(PicketBoxHTTPManager picketBoxManager) {
         this.picketBoxManager = picketBoxManager;
     }
 
@@ -119,9 +119,9 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
         HttpServletRequest request = (HttpServletRequest) servletReq;
         HttpServletResponse response = (HttpServletResponse) servletResp;
 
-        if (this.picketBoxManager.isAuthenticated(request)) {
-            PicketBoxSubject subject = this.picketBoxManager.getAuthenticatedUser(request);
+        PicketBoxSubject subject = this.picketBoxManager.createSubject(new PicketBoxHTTPSecurityContext(request, response));
 
+        if (subject.isAuthenticated()) {
             return subject.getUser();
         }
 
@@ -133,7 +133,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
             return null;
         }
 
-        PicketBoxSubject subject = performAuthentication(request, response);
+        subject = performAuthentication(request, response);
 
         if (subject == null) {
             return null;
@@ -154,9 +154,9 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
             return null;
         }
 
-        PicketBoxSubject subject = this.picketBoxManager.authenticate(authenticationCallbackHandler);
+        PicketBoxSubject subject = this.picketBoxManager.authenticate(new PicketBoxHTTPSecurityContext(request, response), authenticationCallbackHandler);
 
-        if (subject != null) {
+        if (subject != null && subject.isAuthenticated()) {
             // remove from the cache the saved request and store it in the session for further use.
             SavedRequest savedRequest = this.requestCache.removeAndStoreSavedRequestInSession(request);
             String requestedURI = null;
@@ -164,8 +164,6 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
             if (savedRequest != null) {
                 requestedURI = savedRequest.getRequestURI();
             }
-
-            request.getSession(true).setAttribute(PicketBoxConstants.SUBJECT, subject);
 
             // if the user has explicit defined a default page url, use it to redirect the user after a successful
             // authentication.

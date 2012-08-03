@@ -34,10 +34,8 @@ import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.impl.CertificateMechanism;
-import org.picketbox.core.authentication.impl.DigestMechanism;
-import org.picketbox.core.authentication.impl.UserNamePasswordMechanism;
 import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticationManager;
+import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPFormAuthentication;
 import org.picketbox.test.http.TestServletContext;
 import org.picketbox.test.http.TestServletContext.TestRequestDispatcher;
@@ -61,12 +59,9 @@ public class HTTPFormAuthenticationTestCase extends AbstractAuthenticationTest {
         super.initialize();
         httpForm = new HTTPFormAuthentication();
  
-        configuration.authentication().addMechanism(new UserNamePasswordMechanism()).addMechanism(new DigestMechanism())
-                .addMechanism(new CertificateMechanism());
-
         configuration.authentication().addAuthManager(new PropertiesFileBasedAuthenticationManager());
 
-        httpForm.setPicketBoxManager(configuration.buildAndStart());
+        httpForm.setPicketBoxManager((PicketBoxHTTPManager) configuration.buildAndStart());
     }
 
     @Test

@@ -35,8 +35,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.authentication.AbstractAuthenticationManager;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.impl.CertificateMechanism;
 import org.picketbox.core.exceptions.AuthenticationException;
+import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPClientCertAuthentication;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
@@ -50,8 +50,6 @@ import org.picketbox.test.http.TestServletResponse;
 public class HTTPClientCertAuthenticationTestCase extends AbstractAuthenticationTest {
 
     private HTTPClientCertAuthentication httpClientCert = null;
-
-    // private TestServletContext sc = new TestServletContext(new HashMap<String, String>());
 
     private class HTTPClientCertAuthenticationTestCaseAM extends AbstractAuthenticationManager {
         @Override
@@ -91,11 +89,10 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
         super.initialize();
         
         httpClientCert = new HTTPClientCertAuthentication();
-        configuration.authentication().addMechanism(new CertificateMechanism());
 
         configuration.authentication().addAuthManager(new HTTPClientCertAuthenticationTestCaseAM());
 
-        httpClientCert.setPicketBoxManager(configuration.buildAndStart());
+        httpClientCert.setPicketBoxManager((PicketBoxHTTPManager) configuration.buildAndStart());
     }
 
     @Test
