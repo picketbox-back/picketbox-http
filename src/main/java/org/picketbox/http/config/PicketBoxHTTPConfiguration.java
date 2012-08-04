@@ -19,22 +19,30 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketbox.test.authentication.http;
 
-import org.picketbox.core.config.PicketBoxManagerConfiguration;
-import org.picketbox.http.PicketBoxHTTPManager;
+package org.picketbox.http.config;
+
+import org.picketbox.core.config.AuthenticationConfiguration;
+import org.picketbox.core.config.AuthorizationConfig;
+import org.picketbox.core.config.IdentityManagerConfig;
+import org.picketbox.core.config.PicketBoxConfiguration;
 
 /**
- * Base class
- * @author anil saldhana
- * @since Aug 1, 2012
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  */
-public class AbstractAuthenticationTest {
-    protected PicketBoxManagerConfiguration configuration;
-    
-    public void initialize() throws Exception{
-        configuration = new PicketBoxManagerConfiguration();
-        configuration.manager(new PicketBoxHTTPManager());
+public class PicketBoxHTTPConfiguration extends PicketBoxConfiguration {
+
+    private ProtectedResourceConfig protectedResource;
+
+    public PicketBoxHTTPConfiguration(AuthenticationConfiguration authentication, AuthorizationConfig authorization,
+            IdentityManagerConfig identityManager, ProtectedResourceConfig protectedResource) {
+        super(authentication, authorization, identityManager);
+        this.protectedResource = protectedResource;
+    }
+
+    public ProtectedResourceConfig getProtectedResource() {
+        return protectedResource;
     }
 
 }

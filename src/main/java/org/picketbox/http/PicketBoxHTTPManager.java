@@ -22,13 +22,23 @@
 
 package org.picketbox.http;
 
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.picketbox.core.AbstractPicketBoxManager;
 import org.picketbox.core.PicketBoxManager;
 import org.picketbox.core.PicketBoxSecurityContext;
 import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.authentication.AuthenticationCallbackHandler;
 import org.picketbox.core.authentication.PicketBoxConstants;
+import org.picketbox.core.authorization.Resource;
+import org.picketbox.http.authorization.resource.WebResource;
+import org.picketbox.http.config.PicketBoxHTTPConfiguration;
+import org.picketbox.http.resource.ProtectedResource;
+import org.picketbox.http.resource.ProtectedResourceManager;
 
 /**
  * <p>
@@ -38,6 +48,18 @@ import org.picketbox.core.authentication.PicketBoxConstants;
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
 public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
+
+    private ProtectedResourceManager protectedResourceManager;
+    private PicketBoxHTTPConfiguration configuration;
+
+    public PicketBoxHTTPManager() {
+
+    }
+
+    public PicketBoxHTTPManager(PicketBoxHTTPConfiguration configuration) {
+        super(configuration);
+        this.configuration = configuration;
+    }
 
     /* (non-Javadoc)
      * @see org.picketbox.core.AbstractPicketBoxManager#doCreateSession(org.picketbox.core.PicketBoxSecurityContext, org.picketbox.core.PicketBoxSubject)
@@ -50,8 +72,6 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
 
         PicketBoxHTTPSecurityContext httpSecurityContext = (PicketBoxHTTPSecurityContext) securityContext;
         HttpSession httpSession = httpSecurityContext.getRequest().getSession(false);
-
-        httpSession.setAttribute(PicketBoxConstants.SUBJECT, resultingSubject);
 
         return new PicketBoxHTTPSession(resultingSubject, httpSession);
     }
@@ -67,17 +87,69 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
 
         PicketBoxHTTPSecurityContext httpSecurityContext = (PicketBoxHTTPSecurityContext) securityContext;
 
-        HttpSession session = httpSecurityContext.getRequest().getSession(false);
+        HttpSession session = httpSecurityContext.getRequest().getSession(true);
+
+        PicketBoxSubject subject = null;
 
         if (session != null) {
-            PicketBoxSubject subject = (PicketBoxSubject) session.getAttribute(PicketBoxConstants.SUBJECT);
-
-            if (subject != null) {
-                return subject;
-            }
+            subject = (PicketBoxSubject) session.getAttribute(PicketBoxConstants.SUBJECT);
         }
 
-        return new PicketBoxHTTPSubject();
+        if (subject == null) {
+            subject = new PicketBoxHTTPSubject();
+            session.setAttribute(PicketBoxConstants.SUBJECT, subject);
+        }
+
+        return subject;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketbox.core.AbstractPicketBoxManager#doPreAuthentication(org.picketbox.core.PicketBoxSecurityContext, org.picketbox.core.authentication.AuthenticationCallbackHandler)
+     */
+    @Override
+    protected boolean doPreAuthentication(PicketBoxSecurityContext securityContext,
+            AuthenticationCallbackHandler authenticationCallbackHandler) {
+        PicketBoxHTTPSecurityContext httpContext = (PicketBoxHTTPSecurityContext) securityContext;
+
+        ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(createWebResource(httpContext.getRequest(), httpContext.getResponse()));
+
+        return protectedResource.requiresAuthentication();
+    }
+
+    @Override
+    public boolean authorize(PicketBoxSubject subject, Resource resource) {
+        ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(resource);
+
+        if (!protectedResource.isAllowed(subject.getRoleNames().toArray(new String[subject.getRoleNames().size()]))) {
+            return false;
+        }
+
+        return super.authorize(subject, resource);
+    }
+
+    private WebResource createWebResource(HttpServletRequest request, HttpServletResponse response) {
+        WebResource resource = new WebResource();
+
+        resource.setContext(request.getServletContext());
+        resource.setRequest(request);
+        resource.setResponse(response);
+
+        return resource;
+    }
+
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.AbstractPicketBoxManager#doConfigure()
+     */
+    @Override
+    protected void doConfigure() {
+        this.protectedResourceManager = this.configuration.getProtectedResource().getManager();
+        List<ProtectedResource> resources = this.configuration.getProtectedResource().getResources();
+
+        for (ProtectedResource protectedResource : resources) {
+            this.protectedResourceManager.addProtectedResource(protectedResource);
+        }
+
+        this.protectedResourceManager.start();
+    }
 }

@@ -19,22 +19,30 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketbox.test.authentication.http;
 
-import org.picketbox.core.config.PicketBoxManagerConfiguration;
-import org.picketbox.http.PicketBoxHTTPManager;
+package org.picketbox.http.config;
+
+import org.picketbox.core.config.AbstractConfigurationBuilder;
 
 /**
- * Base class
- * @author anil saldhana
- * @since Aug 1, 2012
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  */
-public class AbstractAuthenticationTest {
-    protected PicketBoxManagerConfiguration configuration;
-    
-    public void initialize() throws Exception{
-        configuration = new PicketBoxManagerConfiguration();
-        configuration.manager(new PicketBoxHTTPManager());
+public abstract class AbstractPicketBoxHTTPConfigBuilder<T> extends AbstractConfigurationBuilder<T> {
+
+    private HTTPConfigurationBuilder builder;
+
+    public AbstractPicketBoxHTTPConfigBuilder(HTTPConfigurationBuilder builder) {
+        super(builder);
+        this.builder = builder;
+    }
+
+    /**
+     * @return
+     * @see org.picketbox.http.config.HTTPConfigurationBuilder#protectedResource()
+     */
+    public ProtectedResourceConfigurationBuilder protectedResource() {
+        return builder.protectedResource();
     }
 
 }
