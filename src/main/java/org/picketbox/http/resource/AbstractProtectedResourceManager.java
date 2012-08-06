@@ -26,18 +26,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
+import org.picketbox.core.AbstractPicketBoxLifeCycle;
 import org.picketbox.core.PicketBoxLogger;
 import org.picketbox.core.PicketBoxMessages;
-import org.picketbox.http.authorization.resource.WebResource;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
-public class HTTPProtectedResourceManager extends AbstractProtectedResourceManager implements
-        ProtectedResourceManager<WebResource> {
+public class AbstractProtectedResourceManager extends AbstractPicketBoxLifeCycle {
 
     private List<ProtectedResource> resources = new ArrayList<ProtectedResource>();
 
@@ -53,29 +50,6 @@ public class HTTPProtectedResourceManager extends AbstractProtectedResourceManag
      */
     public void setResources(List<ProtectedResource> resources) {
         this.resources = resources;
-    }
-
-    /**
-     * <p>
-     * Returns a {@link ProtectedResource} instance that matches the specified {@link HttpServletRequest} instance. If no match
-     * is found, it will be returned a default resource. See <code>ProtectedResource.DEFAULT_RESOURCE</code>.
-     * </p>
-     *
-     * @param servletReq
-     * @return
-     */
-    public ProtectedResource getProtectedResource(WebResource servletReq) {
-        checkIfStarted();
-
-        String requestURI = servletReq.getRequest().getRequestURI().substring(servletReq.getRequest().getContextPath().length());
-
-        for (ProtectedResource resource : this.resources) {
-            if (resource.matches(requestURI)) {
-                return resource;
-            }
-        }
-
-        return ProtectedResource.DEFAULT_RESOURCE;
     }
 
     /*
@@ -114,11 +88,6 @@ public class HTTPProtectedResourceManager extends AbstractProtectedResourceManag
         }
 
         this.resources.add(new ProtectedResource(pattern, constraint));
-    }
-
-    @Override
-    public void addProtectedResource(ProtectedResource protectedResource) {
-        this.resources.add(protectedResource);
     }
 
 }

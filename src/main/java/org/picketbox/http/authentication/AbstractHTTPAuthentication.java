@@ -114,6 +114,9 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
     public void sessionDestroyed(HttpSessionEvent se) {
     }
 
+    /* (non-Javadoc)
+     * @see org.picketbox.http.authentication.HTTPAuthenticationScheme#authenticate(javax.servlet.ServletRequest, javax.servlet.ServletResponse)
+     */
     @Override
     public Principal authenticate(ServletRequest servletReq, ServletResponse servletResp) throws AuthenticationException {
         HttpServletRequest request = (HttpServletRequest) servletReq;
