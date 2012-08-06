@@ -35,9 +35,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.authentication.AbstractAuthenticationManager;
 import org.picketbox.core.authentication.PicketBoxConstants;
+import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticationManager;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPClientCertAuthentication;
+import org.picketbox.http.config.PicketBoxHTTPConfiguration;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
 
@@ -90,9 +92,12 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
         
         httpClientCert = new HTTPClientCertAuthentication();
 
-        configuration.authentication().addAuthManager(new HTTPClientCertAuthenticationTestCaseAM());
-
-        httpClientCert.setPicketBoxManager((PicketBoxHTTPManager) configuration.buildAndStart());
+        configuration.authentication().authManager(new HTTPClientCertAuthenticationTestCaseAM());
+        PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
+        
+        picketBoxManager.start();
+        
+        httpClientCert.setPicketBoxManager(picketBoxManager);
     }
 
     @Test
@@ -111,7 +116,10 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
                 System.out.println(b);
             }
         });
-
+        
+        req.setContextPath("/test");
+        req.setRequestURI(req.getContextPath() + "/index.html");
+        
         InputStream bis = getClass().getClassLoader().getResourceAsStream("cert/servercert.txt");
 
         CertificateFactory cf = CertificateFactory.getInstance("X.509");

@@ -40,6 +40,7 @@ import org.picketbox.core.util.Base64;
 import org.picketbox.core.util.HTTPDigestUtil;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPDigestAuthentication;
+import org.picketbox.http.config.PicketBoxHTTPConfiguration;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
 
@@ -61,9 +62,12 @@ public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest
         httpDigest.setRealmName("testrealm@host.com");
         httpDigest.setOpaque("5ccc069c403ebaf9f0171e9517f40e41");
  
-        configuration.authentication().addAuthManager(new PropertiesFileBasedAuthenticationManager());
-
-        httpDigest.setPicketBoxManager((PicketBoxHTTPManager) configuration.buildAndStart());
+        configuration.authentication().authManager(new PropertiesFileBasedAuthenticationManager());
+        PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
+        
+        picketBoxManager.start();
+        
+        httpDigest.setPicketBoxManager(picketBoxManager);
     }
 
     @Test
@@ -84,6 +88,8 @@ public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest
         });
 
         req.setMethod("GET");
+        req.setContextPath("/test");
+        req.setRequestURI(req.getContextPath() + "/index.html");
 
         // Call the server to get the digest challenge
         Principal result = httpDigest.authenticate(req, resp);
