@@ -75,10 +75,10 @@ public class PicketBoxHTTPConfigurationTestCase {
             }
         });
         
-        builder.protectedResource().manager(new HTTPProtectedResourceManager()).resource("/secure/*", ProtectedResourceConstraint.ALL);
-        builder.protectedResource().manager(new HTTPProtectedResourceManager()).resource("/notSecured/index.html", ProtectedResourceConstraint.NOT_PROTECTED);
-        builder.protectedResource().manager(new HTTPProtectedResourceManager()).resource("/onlyRoleManager/index.html", new String[] {"Manager"});
-        builder.protectedResource().manager(new HTTPProtectedResourceManager()).resource("/onlyRoleFinancial/index.html", new String[] {"Financial"});
+        builder.protectedResource().resource("/secure/*", ProtectedResourceConstraint.ALL);
+        builder.protectedResource().resource("/notSecured/index.html", ProtectedResourceConstraint.NOT_PROTECTED);
+        builder.protectedResource().resource("/onlyRoleManager/index.html", new String[] {"Manager"});
+        builder.protectedResource().resource("/onlyRoleFinancial/index.html", new String[] {"Financial"});
         
         PicketBoxHTTPConfiguration build = (PicketBoxHTTPConfiguration) builder.build();
         

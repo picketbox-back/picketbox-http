@@ -120,11 +120,15 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
     public boolean authorize(PicketBoxSubject subject, Resource resource) {
         ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(resource);
 
-        if (!protectedResource.isAllowed(subject.getRoleNames().toArray(new String[subject.getRoleNames().size()]))) {
-            return false;
+        if (protectedResource.requiresAuthorization() && subject.isAuthenticated()) {
+            if (!protectedResource.isAllowed(subject.getRoleNames().toArray(new String[subject.getRoleNames().size()]))) {
+                return false;
+            }
+
+            return super.authorize(subject, resource);
         }
 
-        return super.authorize(subject, resource);
+        return true;
     }
 
     private WebResource createWebResource(HttpServletRequest request, HttpServletResponse response) {

@@ -56,7 +56,7 @@ public class ProtectedResourceConfigurationBuilder extends AbstractPicketBoxHTTP
     }
 
     @Override
-    protected ProtectedResourceConfig build() {
+    protected ProtectedResourceConfig doBuild() {
         return new ProtectedResourceConfig(this.manager, this.resources);
     }
 
