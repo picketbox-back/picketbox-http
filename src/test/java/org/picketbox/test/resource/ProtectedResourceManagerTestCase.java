@@ -25,8 +25,8 @@ package org.picketbox.test.resource;
 import org.junit.Test;
 import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.authorization.Resource;
-import org.picketbox.core.resource.ProtectedResourceManager;
 import org.picketbox.http.authorization.resource.WebResource;
+import org.picketbox.http.resource.ProtectedResourceManager;
 
 /**
  * <p>

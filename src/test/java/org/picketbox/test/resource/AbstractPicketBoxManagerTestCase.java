@@ -37,7 +37,7 @@ import org.picketbox.core.authentication.impl.UserNamePasswordMechanism;
 import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticationManager;
 import org.picketbox.core.authorization.AuthorizationManager;
 import org.picketbox.core.authorization.Resource;
-import org.picketbox.core.config.PicketBoxConfiguration;
+import org.picketbox.core.config.PicketBoxManagerConfiguration;
 import org.picketbox.core.exceptions.AuthorizationException;
 import org.picketbox.test.http.TestServletContext;
 import org.picketbox.test.http.TestServletRequest;
@@ -56,8 +56,8 @@ public abstract class AbstractPicketBoxManagerTestCase {
         this.servletContext = new TestServletContext(new HashMap<String, String>());
     }
 
-    protected PicketBoxConfiguration createConfiguration() {
-        PicketBoxConfiguration configuration = new PicketBoxConfiguration();
+    protected PicketBoxManagerConfiguration createConfiguration() {
+        PicketBoxManagerConfiguration configuration = new PicketBoxManagerConfiguration();
 
         configuration.authentication().addMechanism(new UserNamePasswordMechanism()).addMechanism(new DigestMechanism())
                 .addMechanism(new CertificateMechanism());
