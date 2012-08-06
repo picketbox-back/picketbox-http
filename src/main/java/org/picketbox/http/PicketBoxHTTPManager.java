@@ -109,6 +109,10 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
     @Override
     protected boolean doPreAuthentication(PicketBoxSecurityContext securityContext,
             AuthenticationCallbackHandler authenticationCallbackHandler) {
+        if (this.protectedResourceManager == null) {
+            return true;
+        }
+
         PicketBoxHTTPSecurityContext httpContext = (PicketBoxHTTPSecurityContext) securityContext;
 
         ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(createWebResource(httpContext.getRequest(), httpContext.getResponse()));
@@ -118,17 +122,17 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
 
     @Override
     public boolean authorize(PicketBoxSubject subject, Resource resource) {
-        ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(resource);
+        if (this.protectedResourceManager != null) {
+            ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(resource);
 
-        if (protectedResource.requiresAuthorization() && subject.isAuthenticated()) {
-            if (!protectedResource.isAllowed(subject.getRoleNames().toArray(new String[subject.getRoleNames().size()]))) {
-                return false;
+            if (protectedResource.requiresAuthorization() && subject.isAuthenticated()) {
+                if (protectedResource.isAllowed(subject.getRoleNames().toArray(new String[subject.getRoleNames().size()]))) {
+                    return true;
+                }
             }
-
-            return super.authorize(subject, resource);
         }
 
-        return true;
+        return super.authorize(subject, resource);
     }
 
     private WebResource createWebResource(HttpServletRequest request, HttpServletResponse response) {
