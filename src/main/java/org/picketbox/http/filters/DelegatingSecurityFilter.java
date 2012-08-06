@@ -45,7 +45,6 @@ import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticati
 import org.picketbox.core.authentication.manager.SimpleCredentialAuthenticationManager;
 import org.picketbox.core.authorization.AuthorizationManager;
 import org.picketbox.core.authorization.impl.SimpleAuthorizationManager;
-import org.picketbox.core.config.PicketBoxManagerConfiguration;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.PicketBoxHTTPMessages;
@@ -56,6 +55,8 @@ import org.picketbox.http.authentication.HTTPClientCertAuthentication;
 import org.picketbox.http.authentication.HTTPDigestAuthentication;
 import org.picketbox.http.authentication.HTTPFormAuthentication;
 import org.picketbox.http.authorization.resource.WebResource;
+import org.picketbox.http.config.HTTPConfigurationBuilder;
+import org.picketbox.http.config.PicketBoxHTTPConfiguration;
 
 /**
  * A {@link Filter} that delegates to the PicketBox Security Infrastructure
@@ -120,13 +121,14 @@ public class DelegatingSecurityFilter implements Filter {
             authenticationScheme = (HTTPAuthenticationScheme) SecurityActions.instance(getClass(), loader);
         }
 
-        PicketBoxManagerConfiguration configuration = new PicketBoxManagerConfiguration();
+        HTTPConfigurationBuilder configuration = new HTTPConfigurationBuilder();
 
-        configuration.manager(new PicketBoxHTTPManager());
-        configuration.authentication().addAuthManager(am);
-        configuration.authorization(authorizationManager);
+        configuration.authentication().authManager(am);
+        configuration.authorization().manager(authorizationManager);
 
-        this.securityManager = configuration.buildAndStart();
+        this.securityManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
+
+        this.securityManager.start();
 
         authenticationScheme.setPicketBoxManager((PicketBoxHTTPManager) this.securityManager);
 

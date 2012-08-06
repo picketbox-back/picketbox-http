@@ -21,8 +21,7 @@
  */
 package org.picketbox.test.authentication.http;
 
-import org.picketbox.core.config.PicketBoxManagerConfiguration;
-import org.picketbox.http.PicketBoxHTTPManager;
+import org.picketbox.http.config.HTTPConfigurationBuilder;
 
 /**
  * Base class
@@ -30,11 +29,10 @@ import org.picketbox.http.PicketBoxHTTPManager;
  * @since Aug 1, 2012
  */
 public class AbstractAuthenticationTest {
-    protected PicketBoxManagerConfiguration configuration;
+    protected HTTPConfigurationBuilder configuration;
     
     public void initialize() throws Exception{
-        configuration = new PicketBoxManagerConfiguration();
-        configuration.manager(new PicketBoxHTTPManager());
+        configuration = new HTTPConfigurationBuilder();
     }
 
 }
