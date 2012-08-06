@@ -153,6 +153,10 @@ public class DelegatingSecurityFilter implements Filter {
     }
 
     private void authorize(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
+        if (httpResponse.isCommitted()) {
+            return;
+        }
+
         boolean authorize = this.securityManager.authorize(getAuthenticatedUser(httpRequest, httpResponse), createWebResource(httpRequest, httpResponse));
 
         if (!authorize) {
