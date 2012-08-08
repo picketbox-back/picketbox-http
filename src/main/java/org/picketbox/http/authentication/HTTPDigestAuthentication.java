@@ -36,7 +36,7 @@ import javax.servlet.http.HttpSessionEvent;
 import org.picketbox.core.Credential;
 import org.picketbox.core.authentication.DigestHolder;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.handlers.DigestCredential;
+import org.picketbox.core.authentication.credential.DigestCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.core.nonce.NonceGenerator;
 import org.picketbox.core.nonce.UUIDNonceGenerator;

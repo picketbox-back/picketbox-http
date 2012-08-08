@@ -33,7 +33,7 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.PicketBoxSubject;
-import org.picketbox.core.authentication.handlers.UsernamePasswordCredential;
+import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
 import org.picketbox.core.identity.IdentityManager;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.PicketBoxHTTPSubject;
