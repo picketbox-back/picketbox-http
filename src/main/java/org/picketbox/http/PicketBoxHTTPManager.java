@@ -30,9 +30,7 @@ import javax.servlet.http.HttpSession;
 
 import org.picketbox.core.AbstractPicketBoxManager;
 import org.picketbox.core.PicketBoxManager;
-import org.picketbox.core.PicketBoxSecurityContext;
 import org.picketbox.core.PicketBoxSubject;
-import org.picketbox.core.authentication.AuthenticationCallbackHandler;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.authorization.Resource;
 import org.picketbox.http.authorization.resource.WebResource;
@@ -62,60 +60,31 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
     }
 
     /* (non-Javadoc)
-     * @see org.picketbox.core.AbstractPicketBoxManager#doCreateSession(org.picketbox.core.PicketBoxSecurityContext, org.picketbox.core.PicketBoxSubject)
+     * @see org.picketbox.core.AbstractPicketBoxManager#doCreateSession(org.picketbox.core.PicketBoxSubject)
      */
     @Override
-    protected PicketBoxHTTPSession doCreateSession(PicketBoxSecurityContext securityContext, PicketBoxSubject resultingSubject) {
-        if (!(securityContext instanceof PicketBoxHTTPSecurityContext)) {
-            throw new IllegalArgumentException("Wrong security context type. Expected an instance of " + PicketBoxHTTPSecurityContext.class);
-        }
+    protected PicketBoxHTTPSession doCreateSession(PicketBoxSubject resultingSubject) {
+        PicketBoxHTTPSubject httpSubject = (PicketBoxHTTPSubject) resultingSubject;
 
-        PicketBoxHTTPSecurityContext httpSecurityContext = (PicketBoxHTTPSecurityContext) securityContext;
-        HttpSession httpSession = httpSecurityContext.getRequest().getSession(false);
+        HttpSession httpSession = httpSubject.getRequest().getSession(false);
+
+        httpSession.setAttribute(PicketBoxConstants.SUBJECT, resultingSubject);
 
         return new PicketBoxHTTPSession(resultingSubject, httpSession);
-    }
-
-    /* (non-Javadoc)
-     * @see org.picketbox.core.PicketBoxManager#createSubject(org.picketbox.core.PicketBoxSecurityContext)
-     */
-    @Override
-    public PicketBoxSubject createSubject(PicketBoxSecurityContext securityContext) {
-        if (!(securityContext instanceof PicketBoxHTTPSecurityContext)) {
-            throw new IllegalArgumentException("Wrong security context type. Expected an instance of " + PicketBoxHTTPSecurityContext.class);
-        }
-
-        PicketBoxHTTPSecurityContext httpSecurityContext = (PicketBoxHTTPSecurityContext) securityContext;
-
-        HttpSession session = httpSecurityContext.getRequest().getSession(true);
-
-        PicketBoxSubject subject = null;
-
-        if (session != null) {
-            subject = (PicketBoxSubject) session.getAttribute(PicketBoxConstants.SUBJECT);
-        }
-
-        if (subject == null) {
-            subject = new PicketBoxHTTPSubject();
-            session.setAttribute(PicketBoxConstants.SUBJECT, subject);
-        }
-
-        return subject;
     }
 
     /* (non-Javadoc)
      * @see org.picketbox.core.AbstractPicketBoxManager#doPreAuthentication(org.picketbox.core.PicketBoxSecurityContext, org.picketbox.core.authentication.AuthenticationCallbackHandler)
      */
     @Override
-    protected boolean doPreAuthentication(PicketBoxSecurityContext securityContext,
-            AuthenticationCallbackHandler authenticationCallbackHandler) {
+    protected boolean doPreAuthentication(PicketBoxSubject subject) {
         if (this.protectedResourceManager == null) {
             return true;
         }
 
-        PicketBoxHTTPSecurityContext httpContext = (PicketBoxHTTPSecurityContext) securityContext;
+        PicketBoxHTTPSubject httpSubject = (PicketBoxHTTPSubject) subject;
 
-        ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(createWebResource(httpContext.getRequest(), httpContext.getResponse()));
+        ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(createWebResource(httpSubject.getRequest(), httpSubject.getResponse()));
 
         return protectedResource.requiresAuthentication();
     }
@@ -159,5 +128,15 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
         }
 
         this.protectedResourceManager.start();
+    }
+
+    public PicketBoxSubject getSubject(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            return null;
+        }
+
+        return (PicketBoxSubject) session.getAttribute(PicketBoxConstants.SUBJECT);
     }
 }

@@ -24,9 +24,9 @@ package org.picketbox.http.authentication;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.picketbox.core.authentication.AuthenticationCallbackHandler;
+import org.picketbox.core.Credential;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.handlers.UsernamePasswordAuthHandler;
+import org.picketbox.core.authentication.handlers.UsernamePasswordCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
 
 /**
@@ -47,19 +47,15 @@ public class HTTPFormAuthentication extends AbstractHTTPAuthentication {
         return request.getRequestURI().contains(PicketBoxConstants.HTTP_FORM_J_SECURITY_CHECK);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.picketbox.core.authentication.http.AbstractHTTPAuthentication#getUserNamePasswordHandler(javax.servlet.http.
-     * HttpServletRequest, javax.servlet.http.HttpServletResponse)
+    /* (non-Javadoc)
+     * @see org.picketbox.http.authentication.AbstractHTTPAuthentication#getAuthenticationCallbackHandler(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
-    @Override
-    protected AuthenticationCallbackHandler getAuthenticationCallbackHandler(HttpServletRequest request,
+    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request,
             HttpServletResponse response) {
         String userName = request.getParameter(PicketBoxConstants.HTTP_FORM_J_USERNAME);
         String password = request.getParameter(PicketBoxConstants.HTTP_FORM_J_PASSWORD);
 
-        return new UsernamePasswordAuthHandler(userName, password);
+        return new UsernamePasswordCredential(userName, password);
     }
 
     /*
