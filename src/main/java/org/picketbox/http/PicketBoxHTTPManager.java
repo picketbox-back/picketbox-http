@@ -50,10 +50,6 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
     private ProtectedResourceManager protectedResourceManager;
     private PicketBoxHTTPConfiguration configuration;
 
-    public PicketBoxHTTPManager() {
-
-    }
-
     public PicketBoxHTTPManager(PicketBoxHTTPConfiguration configuration) {
         super(configuration);
         this.configuration = configuration;
