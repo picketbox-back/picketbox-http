@@ -139,7 +139,8 @@ public class PicketBoxHTTPConfigurationTestCase {
         
         PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 
-        Assert.assertNull(subject);
+        Assert.assertNotNull(subject);
+        Assert.assertFalse(subject.isAuthenticated());
 
     }
     
