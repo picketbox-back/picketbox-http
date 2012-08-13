@@ -130,9 +130,12 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
 
         boolean jSecurityCheck = isAuthenticationRequest(request);
 
-        if (jSecurityCheck == false) {
-            this.requestCache.saveRequest(request);
-            challengeClient(request, response);
+        if (!jSecurityCheck) {
+            if (this.picketBoxManager.requiresAuthentication(request, response)) {
+                this.requestCache.saveRequest(request);
+                challengeClient(request, response);
+            }
+
             return null;
         }
 

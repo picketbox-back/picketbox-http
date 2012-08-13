@@ -62,7 +62,7 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
     protected PicketBoxHTTPSession doCreateSession(PicketBoxSubject resultingSubject) {
         PicketBoxHTTPSubject httpSubject = (PicketBoxHTTPSubject) resultingSubject;
 
-        HttpSession httpSession = httpSubject.getRequest().getSession(false);
+        HttpSession httpSession = httpSubject.getRequest().getSession();
 
         httpSession.setAttribute(PicketBoxConstants.SUBJECT, resultingSubject);
 
@@ -87,12 +87,12 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
 
     @Override
     public boolean authorize(PicketBoxSubject subject, Resource resource) {
-        if (this.protectedResourceManager != null) {
+        if (this.protectedResourceManager != null && subject != null) {
             ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(resource);
 
             if (protectedResource.requiresAuthorization() && subject.isAuthenticated()) {
-                if (protectedResource.isAllowed(subject.getRoleNames().toArray(new String[subject.getRoleNames().size()]))) {
-                    return true;
+                if (!protectedResource.isAllowed(subject.getRoleNames().toArray(new String[subject.getRoleNames().size()]))) {
+                    return false;
                 }
             }
         }
@@ -134,5 +134,9 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
         }
 
         return (PicketBoxSubject) session.getAttribute(PicketBoxConstants.SUBJECT);
+    }
+
+    public boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response) {
+        return this.protectedResourceManager != null && this.protectedResourceManager.getProtectedResource(createWebResource(request, response)).requiresAuthentication();
     }
 }
