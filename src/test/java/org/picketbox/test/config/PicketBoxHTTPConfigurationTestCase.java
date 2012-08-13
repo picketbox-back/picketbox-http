@@ -33,14 +33,13 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.PicketBoxSubject;
-import org.picketbox.core.authentication.handlers.UsernamePasswordAuthHandler;
+import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
 import org.picketbox.core.identity.IdentityManager;
 import org.picketbox.http.PicketBoxHTTPManager;
-import org.picketbox.http.PicketBoxHTTPSecurityContext;
+import org.picketbox.http.PicketBoxHTTPSubject;
 import org.picketbox.http.authorization.resource.WebResource;
 import org.picketbox.http.config.HTTPConfigurationBuilder;
 import org.picketbox.http.config.PicketBoxHTTPConfiguration;
-import org.picketbox.http.resource.HTTPProtectedResourceManager;
 import org.picketbox.http.resource.ProtectedResourceConstraint;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
@@ -108,7 +107,9 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/secure/index.html");
         
-        PicketBoxSubject subject = picketBoxManager.authenticate(new PicketBoxHTTPSecurityContext(req, resp), new UsernamePasswordAuthHandler("admin", "admin"));
+        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential("admin", "admin"));
+        
+        PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 
         Assert.assertNotNull(subject);
     }
@@ -134,9 +135,12 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/notSecured/index.html");
         
-        PicketBoxSubject subject = picketBoxManager.authenticate(new PicketBoxHTTPSecurityContext(req, resp), new UsernamePasswordAuthHandler("admin", "admin"));
+        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential("admin", "admin"));
+        
+        PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 
-        Assert.assertNull(subject);
+        Assert.assertNotNull(subject);
+        Assert.assertFalse(subject.isAuthenticated());
 
     }
     
@@ -161,7 +165,9 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/onlyRoleManager/index.html");
         
-        PicketBoxSubject subject = picketBoxManager.authenticate(new PicketBoxHTTPSecurityContext(req, resp), new UsernamePasswordAuthHandler("admin", "admin"));
+        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential("admin", "admin"));
+        
+        PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 
         Assert.assertNotNull(subject);
         

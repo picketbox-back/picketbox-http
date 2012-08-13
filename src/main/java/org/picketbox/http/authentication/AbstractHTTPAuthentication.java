@@ -33,11 +33,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSessionEvent;
 
+import org.picketbox.core.Credential;
 import org.picketbox.core.PicketBoxSubject;
-import org.picketbox.core.authentication.AuthenticationCallbackHandler;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.http.PicketBoxHTTPManager;
-import org.picketbox.http.PicketBoxHTTPSecurityContext;
+import org.picketbox.http.PicketBoxHTTPSubject;
 
 /**
  * Base class for all the HTTP authentication schemes
@@ -122,17 +122,20 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
         HttpServletRequest request = (HttpServletRequest) servletReq;
         HttpServletResponse response = (HttpServletResponse) servletResp;
 
-        PicketBoxSubject subject = this.picketBoxManager.createSubject(new PicketBoxHTTPSecurityContext(request, response));
+        PicketBoxSubject subject = this.picketBoxManager.getSubject(request);
 
-        if (subject.isAuthenticated()) {
+        if (subject != null && subject.isAuthenticated()) {
             return subject.getUser();
         }
 
         boolean jSecurityCheck = isAuthenticationRequest(request);
 
-        if (jSecurityCheck == false) {
-            this.requestCache.saveRequest(request);
-            challengeClient(request, response);
+        if (!jSecurityCheck) {
+            if (this.picketBoxManager.requiresAuthentication(request, response)) {
+                this.requestCache.saveRequest(request);
+                challengeClient(request, response);
+            }
+
             return null;
         }
 
@@ -150,14 +153,14 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
     protected PicketBoxSubject performAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
 
-        AuthenticationCallbackHandler authenticationCallbackHandler = getAuthenticationCallbackHandler(request, response);
+        Credential credential = getAuthenticationCallbackHandler(request, response);
 
-        if (authenticationCallbackHandler == null) {
+        if (credential == null) {
             challengeClient(request, response);
             return null;
         }
 
-        PicketBoxSubject subject = this.picketBoxManager.authenticate(new PicketBoxHTTPSecurityContext(request, response), authenticationCallbackHandler);
+        PicketBoxSubject subject = this.picketBoxManager.authenticate(new PicketBoxHTTPSubject(request, response, credential));
 
         if (subject != null && subject.isAuthenticated()) {
             // remove from the cache the saved request and store it in the session for further use.
@@ -182,7 +185,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
         return subject;
     }
 
-    protected abstract AuthenticationCallbackHandler getAuthenticationCallbackHandler(HttpServletRequest request,
+    protected abstract Credential getAuthenticationCallbackHandler(HttpServletRequest request,
             HttpServletResponse response);
 
     protected abstract void challengeClient(HttpServletRequest request, HttpServletResponse response)

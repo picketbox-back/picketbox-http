@@ -91,6 +91,7 @@ public class HTTPFormAuthenticationTestCase extends AbstractAuthenticationTest {
         // Original URI
         String orig = "http://msite/someurl";
 
+        req.setContextPath("/");
         req.setRequestURI(orig);
 
         // Call the server to get the digest challenge
