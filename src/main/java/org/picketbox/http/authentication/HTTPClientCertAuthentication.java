@@ -27,10 +27,10 @@ import java.security.cert.X509Certificate;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.picketbox.core.authentication.AuthenticationCallbackHandler;
+import org.picketbox.core.Credential;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.handlers.CertificateAuthHandler;
-import org.picketbox.core.authentication.handlers.UsernamePasswordAuthHandler;
+import org.picketbox.core.authentication.credential.CertificateCredential;
+import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.core.util.Base64;
 
@@ -61,15 +61,18 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
         return request.getAttribute(PicketBoxConstants.HTTP_CERTIFICATE) != null;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketbox.http.authentication.AbstractHTTPAuthentication#getAuthenticationCallbackHandler(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+     */
     @Override
-    protected AuthenticationCallbackHandler getAuthenticationCallbackHandler(HttpServletRequest request,
+    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request,
             HttpServletResponse response) {
 
         X509Certificate[] certs = (X509Certificate[]) request.getAttribute(PicketBoxConstants.HTTP_CERTIFICATE);
 
         if (certs != null) {
             if (useCertificateValidation) {
-                return new CertificateAuthHandler(certs);
+                return new CertificateCredential(certs);
             }
 
             for (X509Certificate cert : certs) {
@@ -87,7 +90,7 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
                 // Credential is the certificate
                 String password = Base64.encodeBytes(cert.getSignature());
 
-                return new UsernamePasswordAuthHandler(username, password);
+                return new UsernamePasswordCredential(username, password);
             }
         }
         return null;

@@ -26,9 +26,9 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.picketbox.core.authentication.AuthenticationCallbackHandler;
+import org.picketbox.core.Credential;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.handlers.UsernamePasswordAuthHandler;
+import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.core.util.Base64;
 
@@ -64,7 +64,7 @@ public class HTTPBasicAuthentication extends AbstractHTTPAuthentication {
      * HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
     @Override
-    protected AuthenticationCallbackHandler getAuthenticationCallbackHandler(HttpServletRequest request,
+    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request,
             HttpServletResponse response) {
         String authorizationHeader = getAuthorizationHeader(request);
 
@@ -82,7 +82,7 @@ public class HTTPBasicAuthentication extends AbstractHTTPAuthentication {
                     String username = authorizationHeader.substring(0, indexOfColon);
                     String password = authorizationHeader.substring(indexOfColon + 1);
 
-                    return new UsernamePasswordAuthHandler(username, password);
+                    return new UsernamePasswordCredential(username, password);
                 }
             }
         }

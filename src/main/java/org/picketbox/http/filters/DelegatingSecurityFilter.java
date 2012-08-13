@@ -35,7 +35,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.picketbox.core.PicketBoxManager;
 import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.authentication.AuthenticationManager;
 import org.picketbox.core.authentication.PicketBoxConstants;
@@ -48,7 +47,6 @@ import org.picketbox.core.authorization.impl.SimpleAuthorizationManager;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.PicketBoxHTTPMessages;
-import org.picketbox.http.PicketBoxHTTPSecurityContext;
 import org.picketbox.http.authentication.HTTPAuthenticationScheme;
 import org.picketbox.http.authentication.HTTPBasicAuthentication;
 import org.picketbox.http.authentication.HTTPClientCertAuthentication;
@@ -65,7 +63,7 @@ import org.picketbox.http.config.PicketBoxHTTPConfiguration;
  * @since Jul 10, 2012
  */
 public class DelegatingSecurityFilter implements Filter {
-    private PicketBoxManager securityManager;
+    private PicketBoxHTTPManager securityManager;
 
     private FilterConfig filterConfig;
 
@@ -130,7 +128,7 @@ public class DelegatingSecurityFilter implements Filter {
 
         this.securityManager.start();
 
-        authenticationScheme.setPicketBoxManager((PicketBoxHTTPManager) this.securityManager);
+        authenticationScheme.setPicketBoxManager(this.securityManager);
 
         sc.setAttribute(PicketBoxConstants.PICKETBOX_MANAGER, this.securityManager);
     }
@@ -153,6 +151,10 @@ public class DelegatingSecurityFilter implements Filter {
     }
 
     private void authorize(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
+        if (httpResponse.isCommitted()) {
+            return;
+        }
+
         boolean authorize = this.securityManager.authorize(getAuthenticatedUser(httpRequest, httpResponse), createWebResource(httpRequest, httpResponse));
 
         if (!authorize) {
@@ -173,7 +175,7 @@ public class DelegatingSecurityFilter implements Filter {
     }
 
     public PicketBoxSubject getAuthenticatedUser(HttpServletRequest request, HttpServletResponse response) {
-        return this.securityManager.createSubject(new PicketBoxHTTPSecurityContext(request, response));
+        return this.securityManager.getSubject(request);
     }
 
     private void authenticate(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ServletException {

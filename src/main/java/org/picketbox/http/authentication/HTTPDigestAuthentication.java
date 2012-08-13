@@ -33,10 +33,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 
-import org.picketbox.core.authentication.AuthenticationCallbackHandler;
+import org.picketbox.core.Credential;
 import org.picketbox.core.authentication.DigestHolder;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.handlers.DigestAuthHandler;
+import org.picketbox.core.authentication.credential.DigestCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.core.nonce.NonceGenerator;
 import org.picketbox.core.nonce.UUIDNonceGenerator;
@@ -117,8 +117,11 @@ public class HTTPDigestAuthentication extends AbstractHTTPAuthentication {
         return request.getHeader(PicketBoxConstants.HTTP_AUTHORIZATION_HEADER) != null;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketbox.http.authentication.AbstractHTTPAuthentication#getAuthenticationCallbackHandler(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+     */
     @Override
-    protected AuthenticationCallbackHandler getAuthenticationCallbackHandler(HttpServletRequest request,
+    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request,
             HttpServletResponse response) {
         HttpSession session = request.getSession(true);
         String sessionId = session.getId();
@@ -167,7 +170,7 @@ public class HTTPDigestAuthentication extends AbstractHTTPAuthentication {
             NONCE_VALIDATION_RESULT nonceResult = validateNonce(digest, sessionId);
 
             if (nonceResult == NONCE_VALIDATION_RESULT.VALID) {
-                return new DigestAuthHandler(digest);
+                return new DigestCredential(digest);
             }
         }
 
