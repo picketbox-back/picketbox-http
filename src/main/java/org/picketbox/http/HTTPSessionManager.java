@@ -20,30 +20,34 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.picketbox.http.config;
+package org.picketbox.http;
 
-import org.picketbox.core.config.AuthenticationConfiguration;
-import org.picketbox.core.config.AuthorizationConfig;
-import org.picketbox.core.config.IdentityManagerConfig;
+import javax.servlet.http.HttpSession;
+
+import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.config.PicketBoxConfiguration;
-import org.picketbox.core.config.SessionManagerConfig;
+import org.picketbox.core.session.DefaultSessionManager;
+import org.picketbox.core.session.PicketBoxSession;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
-public class PicketBoxHTTPConfiguration extends PicketBoxConfiguration {
+public class HTTPSessionManager extends DefaultSessionManager {
 
-    private ProtectedResourceConfig protectedResource;
-
-    public PicketBoxHTTPConfiguration(AuthenticationConfiguration authentication, AuthorizationConfig authorization,
-            IdentityManagerConfig identityManager, ProtectedResourceConfig protectedResource, SessionManagerConfig sessionManager) {
-        super(authentication, authorization, identityManager, sessionManager);
-        this.protectedResource = protectedResource;
+    public HTTPSessionManager(PicketBoxConfiguration configuration) {
+        super(configuration);
     }
 
-    public ProtectedResourceConfig getProtectedResource() {
-        return protectedResource;
-    }
+    @Override
+    protected PicketBoxSession doCreateSession(PicketBoxSubject authenticatedSubject) {
+        PicketBoxHTTPSubject httpSubject = (PicketBoxHTTPSubject) authenticatedSubject;
 
+        HttpSession httpSession = httpSubject.getRequest().getSession();
+
+        httpSession.setAttribute(PicketBoxConstants.SUBJECT, httpSubject);
+
+        return new PicketBoxHTTPSession(httpSession);
+    }
 }
