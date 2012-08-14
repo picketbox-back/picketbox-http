@@ -56,20 +56,6 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
     }
 
     /* (non-Javadoc)
-     * @see org.picketbox.core.AbstractPicketBoxManager#doCreateSession(org.picketbox.core.PicketBoxSubject)
-     */
-    @Override
-    protected PicketBoxHTTPSession doCreateSession(PicketBoxSubject resultingSubject) {
-        PicketBoxHTTPSubject httpSubject = (PicketBoxHTTPSubject) resultingSubject;
-
-        HttpSession httpSession = httpSubject.getRequest().getSession();
-
-        httpSession.setAttribute(PicketBoxConstants.SUBJECT, resultingSubject);
-
-        return new PicketBoxHTTPSession(resultingSubject, httpSession);
-    }
-
-    /* (non-Javadoc)
      * @see org.picketbox.core.AbstractPicketBoxManager#doPreAuthentication(org.picketbox.core.PicketBoxSecurityContext, org.picketbox.core.authentication.AuthenticationCallbackHandler)
      */
     @Override
@@ -124,6 +110,8 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
         }
 
         this.protectedResourceManager.start();
+
+        setSessionManager(new HTTPSessionManager(this.configuration));
     }
 
     public PicketBoxSubject getSubject(HttpServletRequest request) {
