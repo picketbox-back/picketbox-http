@@ -111,7 +111,7 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
 
         this.protectedResourceManager.start();
 
-        setSessionManager(new HTTPSessionManager(this.configuration));
+        super.sessionManager = new HTTPSessionManager(this.configuration);
     }
 
     public PicketBoxSubject getSubject(HttpServletRequest request) {
