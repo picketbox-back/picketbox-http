@@ -24,7 +24,8 @@ package org.picketbox.http;
 
 import javax.servlet.http.HttpSession;
 
-import org.picketbox.core.session.DefaultSessionKey;
+import org.picketbox.core.exceptions.PicketBoxSessionException;
+import org.picketbox.core.session.DefaultSessionId;
 import org.picketbox.core.session.PicketBoxSession;
 
 /**
@@ -40,12 +41,12 @@ public class PicketBoxHTTPSession extends PicketBoxSession {
     private HttpSession httpSession;
 
     public PicketBoxHTTPSession(HttpSession httpSession) {
-        super(new DefaultSessionKey(httpSession.getId()));
+        super(new DefaultSessionId(httpSession.getId()));
         this.httpSession = httpSession;
     }
 
     @Override
-    public void invalidate() {
+    public void invalidate() throws PicketBoxSessionException {
         super.invalidate();
         this.httpSession.invalidate();
     }
