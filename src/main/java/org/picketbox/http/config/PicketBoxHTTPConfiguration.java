@@ -23,27 +23,33 @@
 package org.picketbox.http.config;
 
 import org.picketbox.core.config.AuthenticationConfiguration;
-import org.picketbox.core.config.AuthorizationConfig;
-import org.picketbox.core.config.IdentityManagerConfig;
+import org.picketbox.core.config.AuthorizationConfiguration;
+import org.picketbox.core.config.IdentityManagerConfiguration;
 import org.picketbox.core.config.PicketBoxConfiguration;
 import org.picketbox.core.config.SessionManagerConfig;
 
 /**
- * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * A HTTP Configuration for PicketBox
  *
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
 public class PicketBoxHTTPConfiguration extends PicketBoxConfiguration {
 
     private ProtectedResourceConfig protectedResource;
 
-    public PicketBoxHTTPConfiguration(AuthenticationConfiguration authentication, AuthorizationConfig authorization,
-            IdentityManagerConfig identityManager, ProtectedResourceConfig protectedResource, SessionManagerConfig sessionManager) {
+    public PicketBoxHTTPConfiguration(AuthenticationConfiguration authentication, AuthorizationConfiguration authorization,
+            IdentityManagerConfiguration identityManager, ProtectedResourceConfig protectedResource,
+            SessionManagerConfig sessionManager) {
         super(authentication, authorization, identityManager, sessionManager);
         this.protectedResource = protectedResource;
     }
 
+    /**
+     * Return the {@link ProtectedResourceConfig}
+     *
+     * @return the protected resource config
+     */
     public ProtectedResourceConfig getProtectedResource() {
         return protectedResource;
     }
-
 }

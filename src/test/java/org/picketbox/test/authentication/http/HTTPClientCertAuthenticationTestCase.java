@@ -35,7 +35,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.authentication.AbstractAuthenticationManager;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticationManager;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPClientCertAuthentication;

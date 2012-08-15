@@ -26,8 +26,9 @@ import org.picketbox.core.config.ConfigurationBuilder;
 import org.picketbox.core.config.PicketBoxConfiguration;
 
 /**
- * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * A {@link ConfigurationBuilder} for HTTP
  *
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
 public class HTTPConfigurationBuilder extends ConfigurationBuilder {
 
@@ -43,7 +44,7 @@ public class HTTPConfigurationBuilder extends ConfigurationBuilder {
 
     @Override
     public PicketBoxConfiguration doBuild() {
-        return new PicketBoxHTTPConfiguration(this.authentication().build(), this.authorization().build(), this.identityManager().build(), this.protectedResource.build(), this.sessionManager().build());
+        return new PicketBoxHTTPConfiguration(this.authentication().build(), this.authorization().build(), this
+                .identityManager().build(), this.protectedResource.build(), this.sessionManager().build());
     }
-
 }
