@@ -64,8 +64,7 @@ public class HTTPBasicAuthentication extends AbstractHTTPAuthentication {
      * HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
     @Override
-    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request,
-            HttpServletResponse response) {
+    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request, HttpServletResponse response) {
         String authorizationHeader = getAuthorizationHeader(request);
 
         int whitespaceIndex = authorizationHeader.indexOf(' ');

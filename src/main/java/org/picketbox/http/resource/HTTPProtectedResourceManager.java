@@ -67,7 +67,8 @@ public class HTTPProtectedResourceManager extends AbstractProtectedResourceManag
     public ProtectedResource getProtectedResource(WebResource servletReq) {
         checkIfStarted();
 
-        String requestURI = servletReq.getRequest().getRequestURI().substring(servletReq.getRequest().getContextPath().length());
+        String requestURI = servletReq.getRequest().getRequestURI()
+                .substring(servletReq.getRequest().getContextPath().length());
 
         for (ProtectedResource resource : this.resources) {
             if (resource.matches(requestURI)) {

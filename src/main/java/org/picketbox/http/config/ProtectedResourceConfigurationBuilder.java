@@ -31,16 +31,59 @@ import org.picketbox.http.resource.ProtectedResourceConstraint;
 import org.picketbox.http.resource.ProtectedResourceManager;
 
 /**
- * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * Protected Resource Configuration Builder
  *
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
 public class ProtectedResourceConfigurationBuilder extends AbstractPicketBoxHTTPConfigBuilder<ProtectedResourceConfig> {
 
+    @SuppressWarnings("rawtypes")
     private ProtectedResourceManager manager;
     private List<ProtectedResource> resources = new ArrayList<ProtectedResource>();
 
+    /**
+     * Build a {@link ProtectedResourceConfigurationBuilder} using the {@link HTTPConfigurationBuilder}
+     *
+     * @param builder the {@link HTTPConfigurationBuilder}
+     */
     public ProtectedResourceConfigurationBuilder(HTTPConfigurationBuilder builder) {
         super(builder);
+    }
+
+    /**
+     * Set the {@link ProtectedResourceManager}
+     *
+     * @param manager
+     * @return
+     */
+    @SuppressWarnings("rawtypes")
+    public ProtectedResourceConfigurationBuilder manager(ProtectedResourceManager manager) {
+        this.manager = manager;
+        return this;
+    }
+
+    /**
+     * Add a resource to the protected resources providing the constraint
+     *
+     * @param pattern
+     * @param constraint a {@link ProtectedResourceConstraint}
+     * @return
+     */
+    public ProtectedResourceConfigurationBuilder resource(String pattern, ProtectedResourceConstraint constraint) {
+        this.resources.add(new ProtectedResource(pattern, constraint));
+        return this;
+    }
+
+    /**
+     * Add a resource to the protected resources along with the roles that can access the resource
+     *
+     * @param pattern
+     * @param roles
+     * @return
+     */
+    public ProtectedResourceConfigurationBuilder resource(String pattern, String... roles) {
+        this.resources.add(new ProtectedResource(pattern, ProtectedResourceConstraint.AUTHORIZATION, roles));
+        return this;
     }
 
     @Override
@@ -50,24 +93,8 @@ public class ProtectedResourceConfigurationBuilder extends AbstractPicketBoxHTTP
         }
     }
 
-    public ProtectedResourceConfigurationBuilder manager(ProtectedResourceManager manager) {
-        this.manager = manager;
-        return this;
-    }
-
     @Override
     protected ProtectedResourceConfig doBuild() {
         return new ProtectedResourceConfig(this.manager, this.resources);
     }
-
-    public ProtectedResourceConfigurationBuilder resource(String pattern, ProtectedResourceConstraint constraint) {
-        this.resources.add(new ProtectedResource(pattern, constraint));
-        return this;
-    }
-
-    public ProtectedResourceConfigurationBuilder resource(String pattern, String... roles) {
-        this.resources.add(new ProtectedResource(pattern, ProtectedResourceConstraint.AUTHORIZATION, roles));
-        return this;
-    }
-
 }

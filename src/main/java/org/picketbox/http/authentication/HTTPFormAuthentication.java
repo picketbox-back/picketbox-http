@@ -47,11 +47,13 @@ public class HTTPFormAuthentication extends AbstractHTTPAuthentication {
         return request.getRequestURI().contains(PicketBoxConstants.HTTP_FORM_J_SECURITY_CHECK);
     }
 
-    /* (non-Javadoc)
-     * @see org.picketbox.http.authentication.AbstractHTTPAuthentication#getAuthenticationCallbackHandler(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.picketbox.http.authentication.AbstractHTTPAuthentication#getAuthenticationCallbackHandler(javax.servlet.http.
+     * HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
-    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request,
-            HttpServletResponse response) {
+    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request, HttpServletResponse response) {
         String userName = request.getParameter(PicketBoxConstants.HTTP_FORM_J_USERNAME);
         String password = request.getParameter(PicketBoxConstants.HTTP_FORM_J_PASSWORD);
 
