@@ -38,8 +38,7 @@ public class PicketBoxHTTPConfiguration extends PicketBoxConfiguration {
     private ProtectedResourceConfig protectedResource;
 
     public PicketBoxHTTPConfiguration(AuthenticationConfiguration authentication, AuthorizationConfiguration authorization,
-            IdentityManagerConfiguration identityManager, ProtectedResourceConfig protectedResource,
-            SessionManagerConfig sessionManager) {
+            IdentityManagerConfiguration identityManager, ProtectedResourceConfig protectedResource, SessionManagerConfig sessionManager) {
         super(authentication, authorization, identityManager, sessionManager);
         this.protectedResource = protectedResource;
     }
