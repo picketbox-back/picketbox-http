@@ -29,13 +29,15 @@ import org.picketbox.core.session.DefaultSessionId;
 import org.picketbox.core.session.PicketBoxSession;
 
 /**
- * <p>This class is a {@link PicketBoxSession} implementation that encapsulates a {@link HttpSession}.</p>
+ * <p>
+ * This class is a {@link PicketBoxSession} implementation that encapsulates a {@link HttpSession}.
+ * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
 public class PicketBoxHTTPSession extends PicketBoxSession {
-
+    private static final long serialVersionUID = 1L;
     private HttpSession httpSession;
 
     public PicketBoxHTTPSession(HttpSession httpSession) {

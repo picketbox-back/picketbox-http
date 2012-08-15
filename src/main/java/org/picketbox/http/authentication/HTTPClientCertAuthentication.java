@@ -61,12 +61,14 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
         return request.getAttribute(PicketBoxConstants.HTTP_CERTIFICATE) != null;
     }
 
-    /* (non-Javadoc)
-     * @see org.picketbox.http.authentication.AbstractHTTPAuthentication#getAuthenticationCallbackHandler(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.picketbox.http.authentication.AbstractHTTPAuthentication#getAuthenticationCallbackHandler(javax.servlet.http.
+     * HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
     @Override
-    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request,
-            HttpServletResponse response) {
+    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request, HttpServletResponse response) {
 
         X509Certificate[] certs = (X509Certificate[]) request.getAttribute(PicketBoxConstants.HTTP_CERTIFICATE);
 

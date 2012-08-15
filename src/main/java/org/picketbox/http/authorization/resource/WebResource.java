@@ -41,26 +41,56 @@ public class WebResource extends AbstractPicketBoxResource {
     protected HttpServletResponse response;
     protected ServletContext context;
 
+    /**
+     * Get the servlet request
+     *
+     * @return
+     */
     public HttpServletRequest getRequest() {
         return request;
     }
 
+    /**
+     * Set the servlet request
+     *
+     * @param request
+     */
     public void setRequest(HttpServletRequest request) {
         this.request = request;
     }
 
+    /**
+     * Get the servlet response
+     *
+     * @return
+     */
     public HttpServletResponse getResponse() {
         return response;
     }
 
+    /**
+     * Set the servlet response
+     *
+     * @param response
+     */
     public void setResponse(HttpServletResponse response) {
         this.response = response;
     }
 
+    /**
+     * Get the servlet context
+     *
+     * @return
+     */
     public ServletContext getContext() {
         return context;
     }
 
+    /**
+     * Set the servlet context
+     *
+     * @param context
+     */
     public void setContext(ServletContext context) {
         this.context = context;
     }

@@ -29,8 +29,9 @@ import org.picketbox.core.config.PicketBoxConfiguration;
 import org.picketbox.core.config.SessionManagerConfig;
 
 /**
- * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * A HTTP Configuration for PicketBox
  *
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
 public class PicketBoxHTTPConfiguration extends PicketBoxConfiguration {
 
@@ -42,8 +43,12 @@ public class PicketBoxHTTPConfiguration extends PicketBoxConfiguration {
         this.protectedResource = protectedResource;
     }
 
+    /**
+     * Return the {@link ProtectedResourceConfig}
+     *
+     * @return the protected resource config
+     */
     public ProtectedResourceConfig getProtectedResource() {
         return protectedResource;
     }
-
 }

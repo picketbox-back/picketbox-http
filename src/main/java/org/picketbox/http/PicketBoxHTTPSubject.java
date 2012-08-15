@@ -29,7 +29,9 @@ import org.picketbox.core.Credential;
 import org.picketbox.core.PicketBoxSubject;
 
 /**
- * <p>{@link PicketBoxSubject} implementation for web applications.</p>
+ * <p>
+ * {@link PicketBoxSubject} implementation for web applications.
+ * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *

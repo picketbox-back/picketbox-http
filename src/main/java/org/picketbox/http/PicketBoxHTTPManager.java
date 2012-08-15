@@ -47,6 +47,7 @@ import org.picketbox.http.resource.ProtectedResourceManager;
  */
 public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
 
+    @SuppressWarnings("rawtypes")
     private ProtectedResourceManager protectedResourceManager;
     private PicketBoxHTTPConfiguration configuration;
 
@@ -55,9 +56,13 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
         this.configuration = configuration;
     }
 
-    /* (non-Javadoc)
-     * @see org.picketbox.core.AbstractPicketBoxManager#doPreAuthentication(org.picketbox.core.PicketBoxSecurityContext, org.picketbox.core.authentication.AuthenticationCallbackHandler)
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.picketbox.core.AbstractPicketBoxManager#doPreAuthentication(org.picketbox.core.PicketBoxSecurityContext,
+     * org.picketbox.core.authentication.AuthenticationCallbackHandler)
      */
+    @SuppressWarnings("unchecked")
     @Override
     protected boolean doPreAuthentication(PicketBoxSubject subject) {
         if (this.protectedResourceManager == null) {
@@ -66,11 +71,13 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
 
         PicketBoxHTTPSubject httpSubject = (PicketBoxHTTPSubject) subject;
 
-        ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(createWebResource(httpSubject.getRequest(), httpSubject.getResponse()));
+        ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(createWebResource(
+                httpSubject.getRequest(), httpSubject.getResponse()));
 
         return protectedResource.requiresAuthentication();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean authorize(PicketBoxSubject subject, Resource resource) {
         if (this.protectedResourceManager != null && subject != null) {
@@ -96,8 +103,9 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
         return resource;
     }
 
-
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.picketbox.core.AbstractPicketBoxManager#doConfigure()
      */
     @Override
@@ -125,7 +133,10 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
         return (PicketBoxSubject) session.getAttribute(PicketBoxConstants.SUBJECT);
     }
 
+    @SuppressWarnings("unchecked")
     public boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response) {
-        return this.protectedResourceManager != null && this.protectedResourceManager.getProtectedResource(createWebResource(request, response)).requiresAuthentication();
+        return this.protectedResourceManager != null
+                && this.protectedResourceManager.getProtectedResource(createWebResource(request, response))
+                        .requiresAuthentication();
     }
 }

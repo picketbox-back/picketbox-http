@@ -44,5 +44,4 @@ public abstract class AbstractPicketBoxHTTPConfigBuilder<T> extends AbstractConf
     public ProtectedResourceConfigurationBuilder protectedResource() {
         return builder.protectedResource();
     }
-
 }
