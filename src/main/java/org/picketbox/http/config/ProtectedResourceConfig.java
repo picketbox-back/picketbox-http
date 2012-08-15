@@ -22,30 +22,83 @@
 
 package org.picketbox.http.config;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.picketbox.http.resource.ProtectedResource;
 import org.picketbox.http.resource.ProtectedResourceManager;
 
 /**
- * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * Configuration for a Protected Resource
  *
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
 public class ProtectedResourceConfig {
 
+    /**
+     * The related {@link ProtectedResourceManager}
+     */
+    @SuppressWarnings("rawtypes")
     private ProtectedResourceManager manager;
-    private List<ProtectedResource> resources;
+    /**
+     * A list of {@link ProtectedResource}
+     */
+    private List<ProtectedResource> resources = new ArrayList<ProtectedResource>();
 
+    /**
+     * Construct a resource config using a manager and a list of resources
+     *
+     * @param manager
+     * @param resources
+     */
+    @SuppressWarnings("rawtypes")
     public ProtectedResourceConfig(ProtectedResourceManager manager, List<ProtectedResource> resources) {
         this.manager = manager;
-        this.resources = resources;
+        this.resources.addAll(resources);
     }
 
+    /**
+     * Get the manager
+     *
+     * @return
+     */
+    @SuppressWarnings("rawtypes")
     public ProtectedResourceManager getManager() {
         return manager;
     }
 
+    /**
+     * Get a read only list of resources
+     *
+     * @return
+     */
     public List<ProtectedResource> getResources() {
-        return resources;
+        return Collections.unmodifiableList(resources);
+    }
+
+    /**
+     * Add a resource
+     *
+     * @param resource
+     */
+    public void addResource(ProtectedResource resource) {
+        this.resources.add(resource);
+    }
+
+    /**
+     * Remove a resource
+     *
+     * @param resource
+     */
+    public void removeResource(ProtectedResource resource) {
+        this.resources.remove(resource);
+    }
+
+    /**
+     * Remove all the resources
+     */
+    public void removeAllResource() {
+        resources.clear();
     }
 }

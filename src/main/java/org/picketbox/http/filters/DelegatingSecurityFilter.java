@@ -155,7 +155,8 @@ public class DelegatingSecurityFilter implements Filter {
             return;
         }
 
-        boolean authorize = this.securityManager.authorize(getAuthenticatedUser(httpRequest, httpResponse), createWebResource(httpRequest, httpResponse));
+        boolean authorize = this.securityManager.authorize(getAuthenticatedUser(httpRequest, httpResponse),
+                createWebResource(httpRequest, httpResponse));
 
         if (!authorize) {
             if (!httpResponse.isCommitted()) {

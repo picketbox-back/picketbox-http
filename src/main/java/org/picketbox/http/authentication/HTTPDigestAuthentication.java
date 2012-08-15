@@ -117,12 +117,14 @@ public class HTTPDigestAuthentication extends AbstractHTTPAuthentication {
         return request.getHeader(PicketBoxConstants.HTTP_AUTHORIZATION_HEADER) != null;
     }
 
-    /* (non-Javadoc)
-     * @see org.picketbox.http.authentication.AbstractHTTPAuthentication#getAuthenticationCallbackHandler(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.picketbox.http.authentication.AbstractHTTPAuthentication#getAuthenticationCallbackHandler(javax.servlet.http.
+     * HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
     @Override
-    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request,
-            HttpServletResponse response) {
+    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession(true);
         String sessionId = session.getId();
 
