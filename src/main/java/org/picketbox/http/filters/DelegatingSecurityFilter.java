@@ -53,6 +53,7 @@ import org.picketbox.http.authentication.HTTPClientCertAuthentication;
 import org.picketbox.http.authentication.HTTPDigestAuthentication;
 import org.picketbox.http.authentication.HTTPFormAuthentication;
 import org.picketbox.http.authorization.resource.WebResource;
+import org.picketbox.http.config.ConfigurationBuilderProvider;
 import org.picketbox.http.config.HTTPConfigurationBuilder;
 import org.picketbox.http.config.PicketBoxHTTPConfiguration;
 
@@ -82,47 +83,61 @@ public class DelegatingSecurityFilter implements Filter {
         String authValue = sc.getInitParameter(PicketBoxConstants.AUTHENTICATION_KEY);
         AuthorizationManager authorizationManager = null;
         AuthenticationManager am = null;
+        HTTPConfigurationBuilder configuration = null;
+
+        String configurationProvider = sc.getInitParameter(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER);
 
         if (authValue != null && !authValue.isEmpty()) {
-            // Look for auth mgr also
-            String authMgrStr = sc.getInitParameter(PicketBoxConstants.AUTH_MGR);
-            // Look for auth mgr also
-            String authzMgrStr = sc.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
+            if (configurationProvider == null) {
+                // Look for auth mgr also
+                String authMgrStr = sc.getInitParameter(PicketBoxConstants.AUTH_MGR);
+                // Look for auth mgr also
+                String authzMgrStr = sc.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
 
-            if (authzMgrStr != null) {
-                authorizationManager = getAuthzMgr(authzMgrStr);
-                authorizationManager.start();
-                contextData.put(PicketBoxConstants.AUTHZ_MGR, authorizationManager);
+                if (authzMgrStr != null) {
+                    authorizationManager = getAuthzMgr(authzMgrStr);
+                    authorizationManager.start();
+                    contextData.put(PicketBoxConstants.AUTHZ_MGR, authorizationManager);
+                }
+
+                am = getAuthMgr(authMgrStr);
+
+                contextData.put(PicketBoxConstants.AUTH_MGR, am);
             }
-
-            am = getAuthMgr(authMgrStr);
-
-            contextData.put(PicketBoxConstants.AUTH_MGR, am);
 
             authenticationScheme = getAuthenticationScheme(authValue, contextData);
         } else {
             String loader = filterConfig.getInitParameter(PicketBoxConstants.AUTH_SCHEME_LOADER);
+
             if (loader == null) {
                 throw PicketBoxHTTPMessages.MESSAGES.missingRequiredInitParameter(PicketBoxConstants.AUTH_SCHEME_LOADER);
             }
-            String authManagerStr = filterConfig.getInitParameter(PicketBoxConstants.AUTH_MGR);
-            if (authManagerStr != null && !authManagerStr.isEmpty()) {
-                am = getAuthMgr(authManagerStr);
-                contextData.put(PicketBoxConstants.AUTH_MGR, am);
+
+            if (configurationProvider == null) {
+                String authManagerStr = filterConfig.getInitParameter(PicketBoxConstants.AUTH_MGR);
+                if (authManagerStr != null && !authManagerStr.isEmpty()) {
+                    am = getAuthMgr(authManagerStr);
+                    contextData.put(PicketBoxConstants.AUTH_MGR, am);
+                }
+                String authzManagerStr = filterConfig.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
+                if (authzManagerStr != null && authzManagerStr.isEmpty()) {
+                    authorizationManager = getAuthzMgr(authzManagerStr);
+                    authorizationManager.start();
+                    contextData.put(PicketBoxConstants.AUTHZ_MGR, authorizationManager);
+                }
             }
-            String authzManagerStr = filterConfig.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
-            if (authzManagerStr != null && authzManagerStr.isEmpty()) {
-                authorizationManager = getAuthzMgr(authzManagerStr);
-                authorizationManager.start();
-                contextData.put(PicketBoxConstants.AUTHZ_MGR, authorizationManager);
-            }
+
             authenticationScheme = (HTTPAuthenticationScheme) SecurityActions.instance(getClass(), loader);
         }
 
-        HTTPConfigurationBuilder configuration = new HTTPConfigurationBuilder();
+        if (configurationProvider != null) {
+            configuration = ((ConfigurationBuilderProvider) SecurityActions.instance(getClass(), configurationProvider)).getBuilder(sc);
+        } else {
+            configuration = new HTTPConfigurationBuilder();
 
-        configuration.authentication().authManager(am);
-        configuration.authorization().manager(authorizationManager);
+            configuration.authentication().authManager(am);
+            configuration.authorization().manager(authorizationManager);
+        }
 
         this.securityManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
 
@@ -224,13 +239,13 @@ public class DelegatingSecurityFilter implements Filter {
 
     private HTTPAuthenticationScheme getAuthenticationScheme(String value, Map<String, Object> contextData)
             throws ServletException {
-        if (value.equals(PicketBoxConstants.BASIC)) {
+        if (value.equalsIgnoreCase(PicketBoxConstants.BASIC)) {
             return new HTTPBasicAuthentication();
         }
-        if (value.equals(PicketBoxConstants.DIGEST)) {
+        if (value.equalsIgnoreCase(PicketBoxConstants.DIGEST)) {
             return new HTTPDigestAuthentication();
         }
-        if (value.equals(PicketBoxConstants.CLIENT_CERT)) {
+        if (value.equalsIgnoreCase(PicketBoxConstants.CLIENT_CERT)) {
             return new HTTPClientCertAuthentication();
         }
 

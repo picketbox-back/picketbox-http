@@ -20,34 +20,30 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.picketbox.http.config;
+package org.picketbox.test.authentication.http.jetty;
 
-import org.picketbox.core.config.ConfigurationBuilder;
-import org.picketbox.core.config.PicketBoxConfiguration;
+import javax.servlet.ServletContext;
+
+import org.picketbox.core.authentication.manager.SimpleCredentialAuthenticationManager;
+import org.picketbox.http.config.ConfigurationBuilderProvider;
+import org.picketbox.http.config.HTTPConfigurationBuilder;
 
 /**
- * A {@link ConfigurationBuilder} for HTTP
- *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  */
-public class HTTPConfigurationBuilder extends ConfigurationBuilder {
+public class HTTPDigestConfigurationProvider implements ConfigurationBuilderProvider {
 
-    private ProtectedResourceConfigurationBuilder protectedResource;
-
-    public HTTPConfigurationBuilder() {
-        this.protectedResource = new ProtectedResourceConfigurationBuilder(this);
-    }
-
-    /**
-     * @return
+    /* (non-Javadoc)
+     * @see org.picketbox.http.config.ConfigurationBuilderProvider#getBuilder(javax.servlet.ServletContext)
      */
-    public ProtectedResourceConfigurationBuilder protectedResource() {
-        return this.protectedResource;
+    @Override
+    public HTTPConfigurationBuilder getBuilder(ServletContext context) {
+        HTTPConfigurationBuilder configurationBuilder = new HTTPConfigurationBuilder();
+        
+        configurationBuilder.authentication().authManager(new SimpleCredentialAuthenticationManager());
+        
+        return configurationBuilder;
     }
 
-    @Override
-    public PicketBoxConfiguration doBuild() {
-        return new PicketBoxHTTPConfiguration(this.authentication().build(), this.authorization().build(), this
-                .identityManager().build(), this.protectedResource.build(), this.sessionManager().build());
-    }
 }
