@@ -22,32 +22,31 @@
 
 package org.picketbox.http.config;
 
-import org.picketbox.core.config.ConfigurationBuilder;
-import org.picketbox.core.config.PicketBoxConfiguration;
+import javax.servlet.ServletContext;
+
+import org.picketbox.http.PicketBoxHTTPManager;
 
 /**
- * A {@link ConfigurationBuilder} for HTTP
+ * <p>
+ * This interfaces can be implemented to provide a {@link HTTPConfigurationBuilder} that will be used to configure and create
+ * the {@link PicketBoxHTTPManager}.
+ * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  */
-public class HTTPConfigurationBuilder extends ConfigurationBuilder {
-
-    private ProtectedResourceConfigurationBuilder protectedResource;
-
-    public HTTPConfigurationBuilder() {
-        this.protectedResource = new ProtectedResourceConfigurationBuilder(this);
-    }
+public interface ConfigurationBuilderProvider {
 
     /**
+     * <p>
+     * Returns a {@link HTTPConfigurationBuilder} instance to be used to build the configuration. You can use the
+     * {@link ServletContext} param to get informations about your application context.
+     * </p>
+     *
+     * @param sc
+     *
      * @return
      */
-    public ProtectedResourceConfigurationBuilder protectedResource() {
-        return this.protectedResource;
-    }
+    HTTPConfigurationBuilder getBuilder(ServletContext servletcontext);
 
-    @Override
-    public PicketBoxConfiguration doBuild() {
-        return new PicketBoxHTTPConfiguration(this.authentication().build(), this.authorization().build(), this
-                .identityManager().build(), this.protectedResource.build(), this.sessionManager().build());
-    }
 }

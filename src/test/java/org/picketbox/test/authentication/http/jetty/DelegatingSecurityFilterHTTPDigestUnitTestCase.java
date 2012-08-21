@@ -24,6 +24,8 @@ package org.picketbox.test.authentication.http.jetty;
 import static org.junit.Assert.assertEquals;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -40,11 +42,9 @@ import org.mortbay.jetty.servlet.FilterHolder;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.picketbox.core.authentication.DigestHolder;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.http.authentication.HTTPBasicAuthentication;
-import org.picketbox.http.authentication.HTTPDigestAuthentication;
-import org.picketbox.core.authentication.manager.SimpleCredentialAuthenticationManager;
-import org.picketbox.http.filters.DelegatingSecurityFilter;
 import org.picketbox.core.util.HTTPDigestUtil;
+import org.picketbox.http.authentication.HTTPBasicAuthentication;
+import org.picketbox.http.filters.DelegatingSecurityFilter;
 import org.picketbox.test.http.jetty.EmbeddedWebServerBase;
 
 /**
@@ -81,8 +81,14 @@ public class DelegatingSecurityFilterHTTPDigestUnitTestCase extends EmbeddedWebS
         System.setProperty(PicketBoxConstants.CREDENTIAL, "Open Sesame");
 
         FilterHolder filterHolder = new FilterHolder(DelegatingSecurityFilter.class);
-        filterHolder.setInitParameter(PicketBoxConstants.AUTH_MGR, SimpleCredentialAuthenticationManager.class.getName());
-        filterHolder.setInitParameter(PicketBoxConstants.AUTH_SCHEME_LOADER, HTTPDigestAuthentication.class.getName());
+        
+        Map<String, String> contextParameters = new HashMap<String, String>();
+        
+        contextParameters.put(PicketBoxConstants.AUTHENTICATION_KEY, PicketBoxConstants.HTTP_DIGEST);
+        contextParameters.put(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER, "org.picketbox.test.authentication.http.jetty.HTTPDigestConfigurationProvider");
+        
+        context.setInitParams(contextParameters);
+        
         context.addFilter(filterHolder, "/", 1);
     }
 
