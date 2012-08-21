@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketbox.test.authentication.http.jetty;
+package org.picketbox.test.config;
 
 import static org.junit.Assert.assertEquals;
 
@@ -45,15 +45,16 @@ import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.util.HTTPDigestUtil;
 import org.picketbox.http.authentication.HTTPDigestAuthentication;
 import org.picketbox.http.filters.DelegatingSecurityFilter;
+import org.picketbox.http.resource.HTTPProtectedResourceManager;
 import org.picketbox.test.http.jetty.EmbeddedWebServerBase;
 
 /**
- * Unit test the {@link DelegatingSecurityFilter} for {@link HTTPDigestAuthentication}
+ * Unit test the {@link HTTPProtectedResourceManager} for {@link HTTPDigestAuthentication}.
  *
  * @author anil saldhana
  * @since Jul 10, 2012
  */
-public class DelegatingSecurityFilterHTTPDigestUnitTestCase extends EmbeddedWebServerBase {
+public class ProtectedResourceManagerUnitTestCase extends EmbeddedWebServerBase {
 
     String urlStr = "http://localhost:11080/auth/";
 
@@ -85,11 +86,11 @@ public class DelegatingSecurityFilterHTTPDigestUnitTestCase extends EmbeddedWebS
         Map<String, String> contextParameters = new HashMap<String, String>();
         
         contextParameters.put(PicketBoxConstants.AUTHENTICATION_KEY, PicketBoxConstants.HTTP_DIGEST);
-        contextParameters.put(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER, HTTPDigestConfigurationProvider.class.getName());
+        contextParameters.put(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER, ProtectedResourcesConfigurationProvider.class.getName());
         
         context.setInitParams(contextParameters);
         
-        context.addFilter(filterHolder, "/", 1);
+        context.addFilter(filterHolder, "/*", 1);
     }
 
     @Test
@@ -145,6 +146,106 @@ public class DelegatingSecurityFilterHTTPDigestUnitTestCase extends EmbeddedWebS
                 System.out.println("Response content length: " + entity.getContentLength());
             }
             assertEquals(200, statusLine.getStatusCode());
+            EntityUtils.consume(entity);
+        } finally {
+            // When HttpClient instance is no longer needed,
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
+        }
+    }
+    
+    @Test
+    public void testUnprotectedResource() throws Exception {
+        URL url = new URL(urlStr + "notProtected");
+
+        DefaultHttpClient httpclient = null;
+        
+        try {
+            httpclient = new DefaultHttpClient();
+
+            HttpGet httpget = new HttpGet(url.toExternalForm());
+            HttpResponse response = httpclient.execute(httpget);
+            assertEquals(404, response.getStatusLine().getStatusCode());
+        } finally {
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
+        }
+    }
+    
+    @Test
+    public void testProtectedResource() throws Exception {
+        URL url = new URL(urlStr + "onlyManagers");
+
+        DefaultHttpClient httpclient = null;
+        
+        try {
+            httpclient = new DefaultHttpClient();
+
+            HttpGet httpget = new HttpGet(url.toExternalForm());
+            HttpResponse response = httpclient.execute(httpget);
+            assertEquals(401, response.getStatusLine().getStatusCode());
+        } finally {
+            // shut down the connection manager to ensure
+            // immediate deallocation of all system resources
+            httpclient.getConnectionManager().shutdown();
+        }
+    }
+    
+    @Test
+    public void testNotAuthorizedResource() throws Exception {
+        URL url = new URL(urlStr + "confidentialResource");
+
+        DefaultHttpClient httpclient = null;
+        try {
+            String user = "Aladdin";
+            String pass = "Open Sesame";
+
+            httpclient = new DefaultHttpClient();
+
+            HttpGet httpget = new HttpGet(url.toExternalForm());
+            HttpResponse response = httpclient.execute(httpget);
+            assertEquals(401, response.getStatusLine().getStatusCode());
+            Header[] headers = response.getHeaders(PicketBoxConstants.HTTP_WWW_AUTHENTICATE);
+
+            HttpEntity entity = response.getEntity();
+            EntityUtils.consume(entity);
+
+            Header header = headers[0];
+            String value = header.getValue();
+            value = value.substring(7).trim();
+
+            String[] tokens = HTTPDigestUtil.quoteTokenize(value);
+            DigestHolder digestHolder = HTTPDigestUtil.digest(tokens);
+
+            DigestScheme digestAuth = new DigestScheme();
+            digestAuth.overrideParamter("algorithm", "MD5");
+            digestAuth.overrideParamter("realm", digestHolder.getRealm());
+            digestAuth.overrideParamter("nonce", digestHolder.getNonce());
+            digestAuth.overrideParamter("qop", "auth");
+            digestAuth.overrideParamter("nc", "0001");
+            digestAuth.overrideParamter("cnonce", DigestScheme.createCnonce());
+            digestAuth.overrideParamter("opaque", digestHolder.getOpaque());
+
+            httpget = new HttpGet(url.toExternalForm());
+            Header auth = digestAuth.authenticate(new UsernamePasswordCredentials(user, pass), httpget);
+            System.out.println(auth.getName());
+            System.out.println(auth.getValue());
+
+            httpget.setHeader(auth);
+
+            System.out.println("executing request" + httpget.getRequestLine());
+            response = httpclient.execute(httpget);
+            entity = response.getEntity();
+
+            System.out.println("----------------------------------------");
+            StatusLine statusLine = response.getStatusLine();
+            System.out.println(statusLine);
+            if (entity != null) {
+                System.out.println("Response content length: " + entity.getContentLength());
+            }
+            assertEquals(403, statusLine.getStatusCode());
             EntityUtils.consume(entity);
         } finally {
             // When HttpClient instance is no longer needed,
