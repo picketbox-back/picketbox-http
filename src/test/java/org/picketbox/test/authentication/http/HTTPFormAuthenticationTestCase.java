@@ -59,11 +59,11 @@ public class HTTPFormAuthenticationTestCase extends AbstractAuthenticationTest {
     public void setup() throws Exception {
         super.initialize();
         httpForm = new HTTPFormAuthentication();
- 
+
         configuration.authentication().authManager(new PropertiesFileBasedAuthenticationManager());
 
         PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-        
+
         picketBoxManager.start();
 
         httpForm.setPicketBoxManager(picketBoxManager);

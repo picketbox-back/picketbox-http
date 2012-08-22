@@ -88,14 +88,14 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
     @Before
     public void setup() throws Exception {
         super.initialize();
-        
+
         httpClientCert = new HTTPClientCertAuthentication();
 
         configuration.authentication().authManager(new HTTPClientCertAuthenticationTestCaseAM());
         PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-        
+
         picketBoxManager.start();
-        
+
         httpClientCert.setPicketBoxManager(picketBoxManager);
     }
 
@@ -115,10 +115,10 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
                 System.out.println(b);
             }
         });
-        
+
         req.setContextPath("/test");
         req.setRequestURI(req.getContextPath() + "/index.html");
-        
+
         InputStream bis = getClass().getClassLoader().getResourceAsStream("cert/servercert.txt");
 
         CertificateFactory cf = CertificateFactory.getInstance("X.509");

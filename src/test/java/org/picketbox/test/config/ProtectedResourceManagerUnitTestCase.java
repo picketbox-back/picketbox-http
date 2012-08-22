@@ -82,14 +82,15 @@ public class ProtectedResourceManagerUnitTestCase extends EmbeddedWebServerBase 
         System.setProperty(PicketBoxConstants.CREDENTIAL, "Open Sesame");
 
         FilterHolder filterHolder = new FilterHolder(DelegatingSecurityFilter.class);
-        
+
         Map<String, String> contextParameters = new HashMap<String, String>();
-        
+
         contextParameters.put(PicketBoxConstants.AUTHENTICATION_KEY, PicketBoxConstants.HTTP_DIGEST);
+        contextParameters.put(PicketBoxConstants.USER_ATTRIBUTE_NAME, "authenticatedUser");
         contextParameters.put(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER, ProtectedResourcesConfigurationProvider.class.getName());
-        
+
         context.setInitParams(contextParameters);
-        
+
         context.addFilter(filterHolder, "/*", 1);
     }
 
@@ -154,13 +155,13 @@ public class ProtectedResourceManagerUnitTestCase extends EmbeddedWebServerBase 
             httpclient.getConnectionManager().shutdown();
         }
     }
-    
+
     @Test
     public void testUnprotectedResource() throws Exception {
         URL url = new URL(urlStr + "notProtected");
 
         DefaultHttpClient httpclient = null;
-        
+
         try {
             httpclient = new DefaultHttpClient();
 
@@ -173,13 +174,13 @@ public class ProtectedResourceManagerUnitTestCase extends EmbeddedWebServerBase 
             httpclient.getConnectionManager().shutdown();
         }
     }
-    
+
     @Test
     public void testProtectedResource() throws Exception {
         URL url = new URL(urlStr + "onlyManagers");
 
         DefaultHttpClient httpclient = null;
-        
+
         try {
             httpclient = new DefaultHttpClient();
 
@@ -192,7 +193,7 @@ public class ProtectedResourceManagerUnitTestCase extends EmbeddedWebServerBase 
             httpclient.getConnectionManager().shutdown();
         }
     }
-    
+
     @Test
     public void testNotAuthorizedResource() throws Exception {
         URL url = new URL(urlStr + "confidentialResource");
