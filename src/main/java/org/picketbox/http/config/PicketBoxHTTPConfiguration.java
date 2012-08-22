@@ -51,4 +51,9 @@ public class PicketBoxHTTPConfiguration extends PicketBoxConfiguration {
     public ProtectedResourceConfig getProtectedResource() {
         return protectedResource;
     }
+
+    @Override
+    public HTTPSessionManagerConfiguration getSessionManager() {
+        return (HTTPSessionManagerConfiguration) super.getSessionManager();
+    }
 }

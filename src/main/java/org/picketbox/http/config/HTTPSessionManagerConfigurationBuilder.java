@@ -19,20 +19,36 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketbox.test.authentication.http;
 
-import org.picketbox.http.config.HTTPConfigurationBuilder;
+package org.picketbox.http.config;
+
+import org.picketbox.core.config.ConfigurationBuilder;
+import org.picketbox.core.config.SessionManagerConfig;
+import org.picketbox.core.config.SessionManagerConfigurationBuilder;
 
 /**
- * Base class
- * @author anil saldhana
- * @since Aug 1, 2012
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  */
-public class AbstractAuthenticationTest {
-    protected HTTPConfigurationBuilder configuration;
+public class HTTPSessionManagerConfigurationBuilder extends SessionManagerConfigurationBuilder {
 
-    public void initialize() throws Exception{
-        configuration = new HTTPConfigurationBuilder();
+    private String userAttributeName;
+
+    public HTTPSessionManagerConfigurationBuilder(ConfigurationBuilder configurationBuilder) {
+        super(configurationBuilder);
+    }
+
+    public HTTPSessionManagerConfigurationBuilder userAttributeName(String name) {
+        this.userAttributeName = name;
+        return this;
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.config.SessionManagerConfigurationBuilder#doBuild()
+     */
+    @Override
+    protected SessionManagerConfig doBuild() {
+        return new HTTPSessionManagerConfiguration(this.userAttributeName, super.doBuild());
     }
 
 }

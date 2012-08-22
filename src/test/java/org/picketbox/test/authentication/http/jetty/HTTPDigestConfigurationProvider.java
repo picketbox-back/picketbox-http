@@ -40,9 +40,9 @@ public class HTTPDigestConfigurationProvider implements ConfigurationBuilderProv
     @Override
     public HTTPConfigurationBuilder getBuilder(ServletContext context) {
         HTTPConfigurationBuilder configurationBuilder = new HTTPConfigurationBuilder();
-        
+
         configurationBuilder.authentication().authManager(new SimpleCredentialAuthenticationManager());
-        
+
         return configurationBuilder;
     }
 

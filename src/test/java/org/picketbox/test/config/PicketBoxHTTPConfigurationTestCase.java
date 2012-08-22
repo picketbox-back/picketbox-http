@@ -46,7 +46,7 @@ import org.picketbox.test.http.TestServletResponse;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
- * 
+ *
  */
 public class PicketBoxHTTPConfigurationTestCase {
 
@@ -57,33 +57,33 @@ public class PicketBoxHTTPConfigurationTestCase {
         HTTPConfigurationBuilder builder = new HTTPConfigurationBuilder();
 
         builder.identityManager().manager(new IdentityManager() {
-            
+
             /* (non-Javadoc)
              * @see org.picketbox.core.identity.IdentityManager#getIdentity(org.picketbox.core.PicketBoxSubject)
              */
             @Override
             public PicketBoxSubject getIdentity(PicketBoxSubject resultingSubject) {
                 List<String> roles = new ArrayList<String>();
-                
+
                 roles.add("Manager");
                 roles.add("Financial");
-                
+
                 resultingSubject.setRoleNames(roles);
-                
+
                 return resultingSubject;
             }
         });
-        
+
         builder.protectedResource()
             .resource("/secure/*", ProtectedResourceConstraint.ALL)
             .resource("/notSecured/index.html", ProtectedResourceConstraint.NOT_PROTECTED)
             .resource("/onlyRoleManager/index.html", new String[] {"Manager"})
             .resource("/onlyRoleFinancial/index.html", new String[] {"Financial"});
-        
+
         PicketBoxHTTPConfiguration build = (PicketBoxHTTPConfiguration) builder.build();
-        
+
         this.picketBoxManager = new PicketBoxHTTPManager(build);
-        
+
         this.picketBoxManager.start();
     }
 
@@ -107,14 +107,14 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setMethod("GET");
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/secure/index.html");
-        
+
         PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential("admin", "admin"));
-        
+
         PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 
         Assert.assertNotNull(subject);
     }
-    
+
     @Test
     public void testNotProtectedResource() throws Exception {
         TestServletRequest req = new TestServletRequest(new InputStream() {
@@ -135,16 +135,16 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setMethod("GET");
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/notSecured/index.html");
-        
+
         PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential("admin", "admin"));
-        
+
         PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 
         Assert.assertNotNull(subject);
         Assert.assertFalse(subject.isAuthenticated());
 
     }
-    
+
     @Test
     public void testRoleProtectedResource() throws Exception {
         TestServletRequest req = new TestServletRequest(new InputStream() {
@@ -165,20 +165,20 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setMethod("GET");
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/onlyRoleManager/index.html");
-        
+
         PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential("admin", "admin"));
-        
+
         PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 
         Assert.assertNotNull(subject);
-        
+
         WebResource resource = new WebResource();
-        
+
         resource.setRequest(req);
         resource.setResponse(resp);
-        
+
         boolean isAuthorized = this.picketBoxManager.authorize(subject, resource);
-        
+
         Assert.assertTrue(isAuthorized);
     }
 

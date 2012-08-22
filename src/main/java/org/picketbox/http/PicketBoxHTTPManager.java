@@ -130,7 +130,22 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
             return null;
         }
 
-        return (PicketBoxSubject) session.getAttribute(PicketBoxConstants.SUBJECT);
+        return (PicketBoxSubject) session.getAttribute(getUserAttributeName());
+    }
+
+    /**
+     * <p>Returns the attribute name that should be used to store the {@link PicketBoxSubject}.</p>
+     *
+     * @return
+     */
+    private String getUserAttributeName() {
+        String name = this.configuration.getSessionManager().getSessionAttributeName();
+
+        if (name == null) {
+            name = PicketBoxConstants.SUBJECT;
+        }
+
+        return name;
     }
 
     @SuppressWarnings("unchecked")

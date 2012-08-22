@@ -29,6 +29,7 @@ import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.config.PicketBoxConfiguration;
 import org.picketbox.core.session.DefaultSessionManager;
 import org.picketbox.core.session.PicketBoxSession;
+import org.picketbox.http.config.PicketBoxHTTPConfiguration;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -36,8 +37,11 @@ import org.picketbox.core.session.PicketBoxSession;
  */
 public class HTTPSessionManager extends DefaultSessionManager {
 
+    private PicketBoxHTTPConfiguration configuration;
+
     public HTTPSessionManager(PicketBoxConfiguration configuration) {
         super(configuration);
+        this.configuration = (PicketBoxHTTPConfiguration) configuration;
     }
 
     @Override
@@ -46,8 +50,23 @@ public class HTTPSessionManager extends DefaultSessionManager {
 
         HttpSession httpSession = httpSubject.getRequest().getSession();
 
-        httpSession.setAttribute(PicketBoxConstants.SUBJECT, httpSubject);
+        httpSession.setAttribute(getUserAttributeName(), httpSubject);
 
         return new PicketBoxHTTPSession(httpSession);
+    }
+
+    /**
+     * <p>Returns the attribute name that should be used to store the {@link PicketBoxSubject}.</p>
+     *
+     * @return
+     */
+    private String getUserAttributeName() {
+        String name = this.configuration.getSessionManager().getSessionAttributeName();
+
+        if (name == null) {
+            name = PicketBoxConstants.SUBJECT;
+        }
+
+        return name;
     }
 }
