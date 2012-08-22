@@ -86,6 +86,7 @@ public class DelegatingSecurityFilter implements Filter {
         HTTPConfigurationBuilder configuration = null;
 
         String configurationProvider = sc.getInitParameter(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER);
+        String userAttributeName = sc.getInitParameter(PicketBoxConstants.USER_ATTRIBUTE_NAME);
 
         if (authValue != null && !authValue.isEmpty()) {
             if (configurationProvider == null) {
@@ -138,6 +139,8 @@ public class DelegatingSecurityFilter implements Filter {
             configuration.authentication().authManager(am);
             configuration.authorization().manager(authorizationManager);
         }
+
+        configuration.sessionManager().userAttributeName(userAttributeName);
 
         this.securityManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
 

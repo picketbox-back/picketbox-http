@@ -81,14 +81,14 @@ public class DelegatingSecurityFilterHTTPDigestUnitTestCase extends EmbeddedWebS
         System.setProperty(PicketBoxConstants.CREDENTIAL, "Open Sesame");
 
         FilterHolder filterHolder = new FilterHolder(DelegatingSecurityFilter.class);
-        
+
         Map<String, String> contextParameters = new HashMap<String, String>();
-        
+
         contextParameters.put(PicketBoxConstants.AUTHENTICATION_KEY, PicketBoxConstants.HTTP_DIGEST);
         contextParameters.put(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER, HTTPDigestConfigurationProvider.class.getName());
-        
+
         context.setInitParams(contextParameters);
-        
+
         context.addFilter(filterHolder, "/", 1);
     }
 

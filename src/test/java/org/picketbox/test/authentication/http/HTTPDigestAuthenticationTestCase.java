@@ -61,12 +61,12 @@ public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest
 
         httpDigest.setRealmName("testrealm@host.com");
         httpDigest.setOpaque("5ccc069c403ebaf9f0171e9517f40e41");
- 
+
         configuration.authentication().authManager(new PropertiesFileBasedAuthenticationManager());
         PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-        
+
         picketBoxManager.start();
-        
+
         httpDigest.setPicketBoxManager(picketBoxManager);
     }
 

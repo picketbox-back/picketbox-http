@@ -46,19 +46,19 @@ public class ProtectedResourcesConfigurationProvider implements ConfigurationBui
     @Override
     public HTTPConfigurationBuilder getBuilder(ServletContext context) {
         HTTPConfigurationBuilder configurationBuilder = new HTTPConfigurationBuilder();
-        
-        configurationBuilder.authentication().authManager(new SimpleCredentialAuthenticationManager());        
-        
+
+        configurationBuilder.authentication().authManager(new SimpleCredentialAuthenticationManager());
+
         configurationBuilder.identityManager().manager(new IdentityManager() {
-            
+
             @Override
             public PicketBoxSubject getIdentity(PicketBoxSubject resultingSubject) {
                 List<String> roles = new ArrayList<String>();
-                
+
                 roles.add("manager");
-                
+
                 resultingSubject.setRoleNames(roles);
-                
+
                 return resultingSubject;
             }
         });
@@ -68,7 +68,7 @@ public class ProtectedResourcesConfigurationProvider implements ConfigurationBui
                 .resource("/notProtected", ProtectedResourceConstraint.NOT_PROTECTED)
                 .resource("/onlyManagers", "manager")
                 .resource("/confidentialResource", "confidential");
-        
+
         return configurationBuilder;
     }
 

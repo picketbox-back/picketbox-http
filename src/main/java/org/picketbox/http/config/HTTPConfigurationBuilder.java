@@ -33,9 +33,11 @@ import org.picketbox.core.config.PicketBoxConfiguration;
 public class HTTPConfigurationBuilder extends ConfigurationBuilder {
 
     private ProtectedResourceConfigurationBuilder protectedResource;
+    private HTTPSessionManagerConfigurationBuilder sessionManager;
 
     public HTTPConfigurationBuilder() {
         this.protectedResource = new ProtectedResourceConfigurationBuilder(this);
+        this.sessionManager = new HTTPSessionManagerConfigurationBuilder(this);
     }
 
     /**
@@ -43,6 +45,14 @@ public class HTTPConfigurationBuilder extends ConfigurationBuilder {
      */
     public ProtectedResourceConfigurationBuilder protectedResource() {
         return this.protectedResource;
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.config.ConfigurationBuilder#sessionManager()
+     */
+    @Override
+    public HTTPSessionManagerConfigurationBuilder sessionManager() {
+        return this.sessionManager;
     }
 
     @Override

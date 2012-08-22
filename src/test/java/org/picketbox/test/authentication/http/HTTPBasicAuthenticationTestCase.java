@@ -53,13 +53,13 @@ public class HTTPBasicAuthenticationTestCase extends AbstractAuthenticationTest 
 
     @Before
     public void setup() throws Exception {
-        super.initialize();        
+        super.initialize();
         httpBasic = new HTTPBasicAuthentication();
         configuration.authentication().authManager(new PropertiesFileBasedAuthenticationManager());
         PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-        
+
         picketBoxManager.start();
-        
+
         httpBasic.setPicketBoxManager(picketBoxManager);
     }
 
@@ -84,7 +84,7 @@ public class HTTPBasicAuthenticationTestCase extends AbstractAuthenticationTest 
         req.addHeader(PicketBoxConstants.HTTP_AUTHORIZATION_HEADER, "Basic " + getPositive());
         req.setContextPath("/test");
         req.setRequestURI(req.getContextPath() + "/index.html");
-        
+
         Principal principal = httpBasic.authenticate(req, resp);
 
         assertNotNull(principal);
