@@ -24,6 +24,8 @@ package org.picketbox.http.resource;
 
 import java.util.Arrays;
 
+import org.picketbox.core.PicketBoxSubject;
+
 /**
  * <p>
  * This class defines how a protected resource is configured. Protected resources have an access pattern and a security
@@ -175,7 +177,7 @@ public class ProtectedResource {
         return false;
     }
 
-    public boolean isAllowed(String... roles) {
+    public boolean isAllowed(PicketBoxSubject subject) {
         if (this.roles == null || this.roles.length == 0) {
             return true;
         }
@@ -183,7 +185,7 @@ public class ProtectedResource {
         boolean isAllowed = false;
 
         for (String role : this.roles) {
-            if (Arrays.binarySearch(roles, role) >= 0) {
+            if (subject.hasRole(role)) {
                 isAllowed = true;
                 break;
             }
