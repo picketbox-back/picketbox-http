@@ -44,7 +44,11 @@ import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticati
 import org.picketbox.core.authentication.manager.SimpleCredentialAuthenticationManager;
 import org.picketbox.core.authorization.AuthorizationManager;
 import org.picketbox.core.authorization.impl.SimpleAuthorizationManager;
+import org.picketbox.core.ctx.PicketBoxSecurityContext;
+import org.picketbox.core.ctx.SecurityContext;
+import org.picketbox.core.ctx.SecurityContextPropagation;
 import org.picketbox.core.exceptions.AuthenticationException;
+import org.picketbox.core.exceptions.ProcessingException;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.PicketBoxHTTPMessages;
 import org.picketbox.http.authentication.HTTPAuthenticationScheme;
@@ -157,14 +161,52 @@ public class DelegatingSecurityFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        logout(httpRequest, httpResponse);
+        try {
+            propagateSecurityContext(httpRequest);
 
-        authenticate(httpRequest, httpResponse);
+            logout(httpRequest, httpResponse);
 
-        authorize(httpRequest, httpResponse);
+            authenticate(httpRequest, httpResponse);
 
-        if (!response.isCommitted()) {
-            chain.doFilter(httpRequest, response);
+            authorize(httpRequest, httpResponse);
+
+            if (!response.isCommitted()) {
+                chain.doFilter(httpRequest, response);
+            }
+        } finally {
+            clearPropagatedSecurityContext();
+        }
+
+    }
+
+    /**
+     * <p>Clear the propagated {@link SecurityContext}.</p
+     *
+     * @throws ServletException
+     */
+    private void clearPropagatedSecurityContext() throws ServletException {
+        try {
+            SecurityContextPropagation.clear();
+        } catch (ProcessingException e) {
+            throw new ServletException(e);
+        }
+    }
+
+    /**
+     * <p>Propagates the authenticated {@link PicketBoxSubject}.</p>
+     *
+     * @param httpRequest
+     * @throws ServletException
+     */
+    private void propagateSecurityContext(HttpServletRequest httpRequest) throws ServletException {
+        PicketBoxSubject subject = this.securityManager.getSubject(httpRequest);
+
+        if (subject != null) {
+            try {
+                SecurityContextPropagation.setContext(new PicketBoxSecurityContext(subject));
+            } catch (ProcessingException e) {
+                throw new ServletException(e);
+            }
         }
     }
 
@@ -173,7 +215,7 @@ public class DelegatingSecurityFilter implements Filter {
             return;
         }
 
-        boolean authorize = this.securityManager.authorize(getAuthenticatedUser(httpRequest, httpResponse),
+        boolean authorize = this.securityManager.authorize(getAuthenticatedUser(httpRequest),
                 createWebResource(httpRequest, httpResponse));
 
         if (!authorize) {
@@ -193,7 +235,7 @@ public class DelegatingSecurityFilter implements Filter {
         return resource;
     }
 
-    public PicketBoxSubject getAuthenticatedUser(HttpServletRequest request, HttpServletResponse response) {
+    public PicketBoxSubject getAuthenticatedUser(HttpServletRequest request) {
         return this.securityManager.getSubject(request);
     }
 
@@ -211,7 +253,7 @@ public class DelegatingSecurityFilter implements Filter {
 
     private void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ServletException {
         if (isLogoutRequest(httpRequest)) {
-            this.securityManager.logout(getAuthenticatedUser(httpRequest, httpResponse));
+            this.securityManager.logout(getAuthenticatedUser(httpRequest));
             try {
                 httpResponse.sendRedirect(httpRequest.getContextPath());
             } catch (IOException e) {
