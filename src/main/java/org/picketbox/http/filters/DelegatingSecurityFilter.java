@@ -74,8 +74,22 @@ public class DelegatingSecurityFilter implements Filter {
 
     private HTTPAuthenticationScheme authenticationScheme;
 
+    public DelegatingSecurityFilter() {
+    }
+
+    public DelegatingSecurityFilter(HTTPAuthenticationScheme authenticationScheme, PicketBoxHTTPManager securityManager) {
+        this.securityManager = securityManager;
+        this.authenticationScheme = authenticationScheme;
+        this.authenticationScheme.setPicketBoxManager(this.securityManager);
+    }
+
     @Override
     public void init(FilterConfig fc) throws ServletException {
+        // no need to configure a PicketBoxManager. A valid instance was used to create this filter.
+        if (this.securityManager != null) {
+            return;
+        }
+
         this.filterConfig = fc;
 
         ServletContext sc = filterConfig.getServletContext();
