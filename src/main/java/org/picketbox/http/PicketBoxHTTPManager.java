@@ -84,7 +84,7 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
             ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(resource);
 
             if (protectedResource.requiresAuthorization() && subject.isAuthenticated()) {
-                if (!protectedResource.isAllowed(subject.getRoleNames().toArray(new String[subject.getRoleNames().size()]))) {
+                if (!protectedResource.isAllowed(subject)) {
                     return false;
                 }
             }
