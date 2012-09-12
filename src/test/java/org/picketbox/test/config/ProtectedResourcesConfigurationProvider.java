@@ -40,7 +40,9 @@ import org.picketbox.http.resource.ProtectedResourceConstraint;
  */
 public class ProtectedResourcesConfigurationProvider implements ConfigurationBuilderProvider {
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.picketbox.http.config.ConfigurationBuilderProvider#getBuilder(javax.servlet.ServletContext)
      */
     @Override
@@ -63,11 +65,8 @@ public class ProtectedResourcesConfigurationProvider implements ConfigurationBui
             }
         });
 
-        configurationBuilder
-            .protectedResource()
-                .resource("/notProtected", ProtectedResourceConstraint.NOT_PROTECTED)
-                .resource("/onlyManagers", "manager")
-                .resource("/confidentialResource", "confidential");
+        configurationBuilder.protectedResource().resource("/notProtected", ProtectedResourceConstraint.NOT_PROTECTED)
+                .resource("/onlyManagers", "manager").resource("/confidentialResource", "confidential");
 
         return configurationBuilder;
     }

@@ -58,7 +58,9 @@ public class PicketBoxHTTPConfigurationTestCase {
 
         builder.identityManager().manager(new IdentityManager() {
 
-            /* (non-Javadoc)
+            /*
+             * (non-Javadoc)
+             *
              * @see org.picketbox.core.identity.IdentityManager#getIdentity(org.picketbox.core.PicketBoxSubject)
              */
             @Override
@@ -74,11 +76,10 @@ public class PicketBoxHTTPConfigurationTestCase {
             }
         });
 
-        builder.protectedResource()
-            .resource("/secure/*", ProtectedResourceConstraint.ALL)
-            .resource("/notSecured/index.html", ProtectedResourceConstraint.NOT_PROTECTED)
-            .resource("/onlyRoleManager/index.html", new String[] {"Manager"})
-            .resource("/onlyRoleFinancial/index.html", new String[] {"Financial"});
+        builder.protectedResource().resource("/secure/*", ProtectedResourceConstraint.ALL)
+                .resource("/notSecured/index.html", ProtectedResourceConstraint.NOT_PROTECTED)
+                .resource("/onlyRoleManager/index.html", new String[] { "Manager" })
+                .resource("/onlyRoleFinancial/index.html", new String[] { "Financial" });
 
         PicketBoxHTTPConfiguration build = (PicketBoxHTTPConfiguration) builder.build();
 
@@ -108,7 +109,8 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/secure/index.html");
 
-        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential("admin", "admin"));
+        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential(
+                "admin", "admin"));
 
         PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 
@@ -136,7 +138,8 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/notSecured/index.html");
 
-        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential("admin", "admin"));
+        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential(
+                "admin", "admin"));
 
         PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 
@@ -166,7 +169,8 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/onlyRoleManager/index.html");
 
-        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential("admin", "admin"));
+        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential(
+                "admin", "admin"));
 
         PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
 

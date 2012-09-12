@@ -33,13 +33,13 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.Test;
-import org.mortbay.jetty.servlet.Context;
-import org.mortbay.jetty.servlet.FilterHolder;
-import org.mortbay.jetty.webapp.WebAppContext;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.http.authentication.HTTPBasicAuthentication;
 import org.picketbox.core.authentication.manager.SimpleCredentialAuthenticationManager;
+import org.picketbox.http.authentication.HTTPBasicAuthentication;
 import org.picketbox.http.filters.DelegatingSecurityFilter;
 import org.picketbox.test.http.jetty.EmbeddedWebServerBase;
 
@@ -68,10 +68,13 @@ public class DelegatingSecurityFilterHTTPBasicUnitTestCase extends EmbeddedWebSe
         final URL warUrl = tcl.getResource(WEBAPPDIR);
         final String warUrlString = warUrl.toExternalForm();
 
-        Context context = new WebAppContext(warUrlString, CONTEXTPATH);
-        server.setHandler(context);
-
-        Thread.currentThread().setContextClassLoader(context.getClassLoader());
+        /*
+         * Context context = new WebAppContext(warUrlString, CONTEXTPATH); server.setHandler(context);
+         *
+         * Thread.currentThread().setContextClassLoader(context.getClassLoader());
+         */
+        WebAppContext webapp = createWebApp(CONTEXTPATH, warUrlString);
+        server.setHandler(webapp);
 
         System.setProperty(PicketBoxConstants.USERNAME, "Aladdin");
         System.setProperty(PicketBoxConstants.CREDENTIAL, "Open Sesame");
@@ -79,7 +82,13 @@ public class DelegatingSecurityFilterHTTPBasicUnitTestCase extends EmbeddedWebSe
         FilterHolder filterHolder = new FilterHolder(DelegatingSecurityFilter.class);
         filterHolder.setInitParameter(PicketBoxConstants.AUTH_MGR, SimpleCredentialAuthenticationManager.class.getName());
         filterHolder.setInitParameter(PicketBoxConstants.AUTH_SCHEME_LOADER, HTTPBasicAuthentication.class.getName());
-        context.addFilter(filterHolder, "/", 1);
+
+        // context.addFilter(filterHolder, "/", 1);
+
+        ServletHandler servletHandler = new ServletHandler();
+        servletHandler.addFilter(filterHolder, createFilterMapping("/", filterHolder));
+
+        webapp.setServletHandler(servletHandler);
     }
 
     @Test
