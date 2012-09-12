@@ -21,11 +21,14 @@
  */
 package org.picketbox.test.http.jetty;
 
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.bio.SocketConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.FilterMapping;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.After;
 import org.junit.Before;
-import org.mortbay.jetty.Connector;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.bio.SocketConnector;
 
 /**
  * Base class for embedded web server based tests
@@ -73,4 +76,20 @@ public abstract class EmbeddedWebServerBase {
      * Establish the user applications - context, servlets etc
      */
     protected abstract void establishUserApps();
+
+    protected FilterMapping createFilterMapping(String pathSpec, FilterHolder filterHolder) {
+        FilterMapping filterMapping = new FilterMapping();
+        filterMapping.setPathSpec(pathSpec);
+        filterMapping.setFilterName(filterHolder.getName());
+        return filterMapping;
+    }
+
+    protected WebAppContext createWebApp(String contextPath, String warURLString) {
+        WebAppContext webapp = new WebAppContext();
+        webapp.setContextPath(contextPath);
+        webapp.setWar(warURLString);
+
+        Thread.currentThread().setContextClassLoader(webapp.getClassLoader());
+        return webapp;
+    }
 }

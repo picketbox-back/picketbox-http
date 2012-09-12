@@ -50,7 +50,7 @@ import org.picketbox.test.http.TestServletResponse;
  * @author anil saldhana
  * @since July 6, 2012
  */
-public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest{
+public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest {
 
     private HTTPDigestAuthentication httpDigest = null;
 

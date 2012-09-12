@@ -34,7 +34,9 @@ import org.picketbox.http.config.HTTPConfigurationBuilder;
  */
 public class HTTPDigestConfigurationProvider implements ConfigurationBuilderProvider {
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.picketbox.http.config.ConfigurationBuilderProvider#getBuilder(javax.servlet.ServletContext)
      */
     @Override
