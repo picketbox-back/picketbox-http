@@ -25,13 +25,14 @@ import org.picketbox.http.config.HTTPConfigurationBuilder;
 
 /**
  * Base class
+ *
  * @author anil saldhana
  * @since Aug 1, 2012
  */
 public class AbstractAuthenticationTest {
     protected HTTPConfigurationBuilder configuration;
 
-    public void initialize() throws Exception{
+    public void initialize() throws Exception {
         configuration = new HTTPConfigurationBuilder();
     }
 
