@@ -58,6 +58,6 @@ public class HTTPConfigurationBuilder extends ConfigurationBuilder {
     @Override
     public PicketBoxConfiguration doBuild() {
         return new PicketBoxHTTPConfiguration(this.authentication().build(), this.authorization().build(), this
-                .identityManager().build(), this.protectedResource.build(), this.sessionManager().build());
+                .identityManager().build(), this.protectedResource.build(), this.sessionManager().build(), this.eventManager().build());
     }
 }
