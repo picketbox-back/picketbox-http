@@ -113,7 +113,7 @@ public class ProtectedResourceManagerUnitTestCase extends EmbeddedWebServerBase 
 
     @Test
     public void testDigestAuth() throws Exception {
-        URL url = new URL(urlStr);
+        URL url = new URL(urlStr + "onlyManagers");
 
         DefaultHttpClient httpclient = null;
         try {
@@ -163,7 +163,7 @@ public class ProtectedResourceManagerUnitTestCase extends EmbeddedWebServerBase 
             if (entity != null) {
                 System.out.println("Response content length: " + entity.getContentLength());
             }
-            assertEquals(200, statusLine.getStatusCode());
+            assertEquals(404, statusLine.getStatusCode());
             EntityUtils.consume(entity);
         } finally {
             // When HttpClient instance is no longer needed,

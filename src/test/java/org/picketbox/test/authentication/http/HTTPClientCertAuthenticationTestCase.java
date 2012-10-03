@@ -33,9 +33,7 @@ import java.security.cert.X509Certificate;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.picketbox.core.authentication.AbstractAuthenticationManager;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPClientCertAuthentication;
 import org.picketbox.http.config.PicketBoxHTTPConfiguration;
@@ -52,50 +50,18 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
 
     private HTTPClientCertAuthentication httpClientCert = null;
 
-    private class HTTPClientCertAuthenticationTestCaseAM extends AbstractAuthenticationManager {
-        @Override
-        public Principal authenticate(final String username, Object credential) throws AuthenticationException {
-            if ("CN=jbid test, OU=JBoss, O=JBoss, C=US".equalsIgnoreCase(username) && ((String) credential).startsWith("W2G")) {
-                return new Principal() {
-                    @Override
-                    public String getName() {
-                        return username;
-                    }
-                };
-            }
-            return null;
-        }
-
-        @Override
-        public boolean started() {
-            return false;
-        }
-
-        @Override
-        public void start() {
-        }
-
-        @Override
-        public boolean stopped() {
-            return false;
-        }
-
-        @Override
-        public void stop() {
-        }
-    }
-
     @Before
     public void setup() throws Exception {
         super.initialize();
 
         httpClientCert = new HTTPClientCertAuthentication();
 
-        configuration.authentication().authManager(new HTTPClientCertAuthenticationTestCaseAM());
+        httpClientCert.setUseCNAsPrincipal(true);
+        
         PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
 
         picketBoxManager.start();
-
+        
         httpClientCert.setPicketBoxManager(picketBoxManager);
     }
 

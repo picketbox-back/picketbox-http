@@ -34,7 +34,6 @@ import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.manager.PropertiesFileBasedAuthenticationManager;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPFormAuthentication;
 import org.picketbox.http.config.PicketBoxHTTPConfiguration;
@@ -59,8 +58,6 @@ public class HTTPFormAuthenticationTestCase extends AbstractAuthenticationTest {
     public void setup() throws Exception {
         super.initialize();
         httpForm = new HTTPFormAuthentication();
-
-        configuration.authentication().authManager(new PropertiesFileBasedAuthenticationManager());
 
         PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
 
