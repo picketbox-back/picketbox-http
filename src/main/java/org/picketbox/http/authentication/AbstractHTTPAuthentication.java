@@ -144,7 +144,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
 
         subject = performAuthentication(request, response);
 
-        if (subject == null) {
+        if (subject == null || !subject.isAuthenticated()) {
             return null;
         }
 
