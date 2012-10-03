@@ -40,7 +40,7 @@ public class HTTPSessionManagerConfiguration extends SessionManagerConfig {
     }
 
     public HTTPSessionManagerConfiguration(String sessionAttributeName, SessionManagerConfig defaultConfiguration) {
-        super(defaultConfiguration.getManager(), defaultConfiguration.getStore(), defaultConfiguration.getListeners(), defaultConfiguration.getSessionTimeout());
+        super(defaultConfiguration.getManager(), defaultConfiguration.getStore(), defaultConfiguration.getSessionTimeout());
         this.sessionAttributeName = sessionAttributeName;
     }
 
