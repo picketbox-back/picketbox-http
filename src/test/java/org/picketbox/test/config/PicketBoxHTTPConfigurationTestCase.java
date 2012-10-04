@@ -34,7 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
-import org.picketbox.core.identity.IdentityManager;
+import org.picketbox.core.identity.PicketBoxSubjectPopulator;
 import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.PicketBoxHTTPSubject;
 import org.picketbox.http.authorization.resource.WebResource;
@@ -43,6 +43,8 @@ import org.picketbox.http.config.PicketBoxHTTPConfiguration;
 import org.picketbox.http.resource.ProtectedResourceConstraint;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
+import org.picketlink.idm.model.Role;
+import org.picketlink.idm.model.SimpleRole;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -56,7 +58,7 @@ public class PicketBoxHTTPConfigurationTestCase {
     public void onSetup() {
         HTTPConfigurationBuilder builder = new HTTPConfigurationBuilder();
 
-        builder.identityManager().manager(new IdentityManager() {
+        builder.identityManager().userPopulator(new PicketBoxSubjectPopulator() {
 
             /*
              * (non-Javadoc)
@@ -65,12 +67,12 @@ public class PicketBoxHTTPConfigurationTestCase {
              */
             @Override
             public PicketBoxSubject getIdentity(PicketBoxSubject resultingSubject) {
-                List<String> roles = new ArrayList<String>();
+                List<Role> roles = new ArrayList<Role>();
 
-                roles.add("Manager");
-                roles.add("Financial");
+                roles.add(new SimpleRole("Manager"));
+                roles.add(new SimpleRole("Financial"));
 
-                resultingSubject.setRoleNames(roles);
+                resultingSubject.setRoles(roles);
 
                 return resultingSubject;
             }

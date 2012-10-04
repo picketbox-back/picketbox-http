@@ -24,7 +24,6 @@ package org.picketbox.test.authentication.http.jetty;
 
 import javax.servlet.ServletContext;
 
-import org.picketbox.core.authentication.manager.SimpleCredentialAuthenticationManager;
 import org.picketbox.http.config.ConfigurationBuilderProvider;
 import org.picketbox.http.config.HTTPConfigurationBuilder;
 
@@ -42,8 +41,6 @@ public class HTTPDigestConfigurationProvider implements ConfigurationBuilderProv
     @Override
     public HTTPConfigurationBuilder getBuilder(ServletContext context) {
         HTTPConfigurationBuilder configurationBuilder = new HTTPConfigurationBuilder();
-
-        configurationBuilder.authentication().authManager(new SimpleCredentialAuthenticationManager());
 
         return configurationBuilder;
     }

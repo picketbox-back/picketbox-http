@@ -38,7 +38,6 @@ import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.Test;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.manager.SimpleCredentialAuthenticationManager;
 import org.picketbox.http.authentication.HTTPBasicAuthentication;
 import org.picketbox.http.filters.DelegatingSecurityFilter;
 import org.picketbox.test.http.jetty.EmbeddedWebServerBase;
@@ -80,7 +79,7 @@ public class DelegatingSecurityFilterHTTPBasicUnitTestCase extends EmbeddedWebSe
         System.setProperty(PicketBoxConstants.CREDENTIAL, "Open Sesame");
 
         FilterHolder filterHolder = new FilterHolder(DelegatingSecurityFilter.class);
-        filterHolder.setInitParameter(PicketBoxConstants.AUTH_MGR, SimpleCredentialAuthenticationManager.class.getName());
+//        filterHolder.setInitParameter(PicketBoxConstants.AUTH_MGR, SimpleCredentialAuthenticationManager.class.getName());
         filterHolder.setInitParameter(PicketBoxConstants.AUTH_SCHEME_LOADER, HTTPBasicAuthentication.class.getName());
 
         // context.addFilter(filterHolder, "/", 1);
