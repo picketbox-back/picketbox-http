@@ -21,8 +21,11 @@
  */
 package org.picketbox.http.authentication;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,9 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.picketbox.core.Credential;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.authentication.credential.CertificateCredential;
-import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
+import org.picketbox.core.authentication.credential.TrustedUsernameCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
-import org.picketbox.core.util.Base64;
 
 /**
  * Perform HTTP Client Certificate Authentication
@@ -46,6 +48,7 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
      * Use Certificate validation directly rather than username/cred model
      */
     protected boolean useCertificateValidation = false;
+    private boolean useCNAsPrincipal;
 
     /**
      * Use Certificate validation directly rather than username/cred model. Default is false.
@@ -89,10 +92,17 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
 
                 String username = certprincipal.getName();
 
-                // Credential is the certificate
-                String password = Base64.encodeBytes(cert.getSignature());
+                if (this.useCNAsPrincipal) {
+                    Properties prop = new Properties();
+                    try {
+                        prop.load(new StringReader(username.replaceAll(",", "\n")));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    username = prop.getProperty("CN");
+                }
 
-                return new UsernamePasswordCredential(username, password);
+                return new TrustedUsernameCredential(username);
             }
         }
         return null;
@@ -101,5 +111,17 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
     @Override
     protected void challengeClient(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
+    }
+
+    /**
+     * <p>
+     * Indicates that the CN from the certificate's subjectDN should be used as the username. The authentication will assume
+     * that the certificate was already validated and the username is trusted.
+     * </p>
+     *
+     * @param useCNAsPrincipal
+     */
+    public void setUseCNAsPrincipal(boolean useCNAsPrincipal) {
+        this.useCNAsPrincipal = useCNAsPrincipal;
     }
 }

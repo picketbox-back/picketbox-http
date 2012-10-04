@@ -128,7 +128,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
         PicketBoxSubject subject = this.picketBoxManager.getSubject(request);
 
         if (subject != null && subject.isAuthenticated()) {
-            return subject.getUser();
+            return subject.getPrincipal();
         }
 
         boolean jSecurityCheck = isAuthenticationRequest(request);
@@ -144,11 +144,11 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
 
         subject = performAuthentication(request, response);
 
-        if (subject == null) {
+        if (subject == null || !subject.isAuthenticated()) {
             return null;
         }
 
-        return subject.getUser();
+        return subject.getPrincipal();
     }
 
     protected abstract boolean isAuthenticationRequest(HttpServletRequest request);

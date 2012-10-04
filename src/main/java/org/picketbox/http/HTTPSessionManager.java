@@ -24,6 +24,7 @@ package org.picketbox.http;
 
 import javax.servlet.http.HttpSession;
 
+import org.picketbox.core.PicketBoxManager;
 import org.picketbox.core.PicketBoxSubject;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.config.PicketBoxConfiguration;
@@ -39,9 +40,9 @@ public class HTTPSessionManager extends DefaultSessionManager {
 
     private PicketBoxHTTPConfiguration configuration;
 
-    public HTTPSessionManager(PicketBoxConfiguration configuration) {
-        super(configuration);
-        this.configuration = (PicketBoxHTTPConfiguration) configuration;
+    public HTTPSessionManager(PicketBoxManager picketBoxManager) {
+        super(picketBoxManager);
+        this.configuration = (PicketBoxHTTPConfiguration) picketBoxManager.getConfiguration();
     }
 
     @Override

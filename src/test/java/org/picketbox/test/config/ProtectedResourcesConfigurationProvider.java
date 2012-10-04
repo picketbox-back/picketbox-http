@@ -22,14 +22,8 @@
 
 package org.picketbox.test.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.servlet.ServletContext;
 
-import org.picketbox.core.PicketBoxSubject;
-import org.picketbox.core.authentication.manager.SimpleCredentialAuthenticationManager;
-import org.picketbox.core.identity.IdentityManager;
 import org.picketbox.http.config.ConfigurationBuilderProvider;
 import org.picketbox.http.config.HTTPConfigurationBuilder;
 import org.picketbox.http.resource.ProtectedResourceConstraint;
@@ -48,22 +42,6 @@ public class ProtectedResourcesConfigurationProvider implements ConfigurationBui
     @Override
     public HTTPConfigurationBuilder getBuilder(ServletContext context) {
         HTTPConfigurationBuilder configurationBuilder = new HTTPConfigurationBuilder();
-
-        configurationBuilder.authentication().authManager(new SimpleCredentialAuthenticationManager());
-
-        configurationBuilder.identityManager().manager(new IdentityManager() {
-
-            @Override
-            public PicketBoxSubject getIdentity(PicketBoxSubject resultingSubject) {
-                List<String> roles = new ArrayList<String>();
-
-                roles.add("manager");
-
-                resultingSubject.setRoleNames(roles);
-
-                return resultingSubject;
-            }
-        });
 
         configurationBuilder.protectedResource().resource("/notProtected", ProtectedResourceConstraint.NOT_PROTECTED)
                 .resource("/onlyManagers", "manager").resource("/confidentialResource", "confidential");
