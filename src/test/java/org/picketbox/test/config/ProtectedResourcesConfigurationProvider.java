@@ -45,6 +45,8 @@ public class ProtectedResourcesConfigurationProvider implements ConfigurationBui
 
         configurationBuilder.protectedResource().resource("/notProtected", ProtectedResourceConstraint.NOT_PROTECTED)
                 .resource("/onlyManagers", "manager").resource("/confidentialResource", "confidential");
+        
+        IdentityManagerInitializer.initializeIdentityStore();
 
         return configurationBuilder;
     }

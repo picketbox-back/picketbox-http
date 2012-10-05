@@ -29,6 +29,12 @@ import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.After;
 import org.junit.Before;
+import org.picketlink.idm.IdentityManager;
+import org.picketlink.idm.internal.DefaultIdentityManager;
+import org.picketlink.idm.internal.file.FileBasedIdentityStore;
+import org.picketlink.idm.model.Group;
+import org.picketlink.idm.model.Role;
+import org.picketlink.idm.model.User;
 
 /**
  * Base class for embedded web server based tests
