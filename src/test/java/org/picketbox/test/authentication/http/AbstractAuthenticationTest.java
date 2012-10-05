@@ -22,6 +22,7 @@
 package org.picketbox.test.authentication.http;
 
 import org.picketbox.http.config.HTTPConfigurationBuilder;
+import org.picketbox.test.config.IdentityManagerInitializer;
 
 /**
  * Base class
@@ -34,6 +35,8 @@ public class AbstractAuthenticationTest {
 
     public void initialize() throws Exception {
         configuration = new HTTPConfigurationBuilder();
+        configuration.identityManager().fileStore().preserveState();
+        IdentityManagerInitializer.initializeIdentityStore();
     }
 
 }
