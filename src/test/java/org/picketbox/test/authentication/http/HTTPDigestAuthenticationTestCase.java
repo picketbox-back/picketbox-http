@@ -121,19 +121,19 @@ public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest
         String cnonce = "0a4f113b";
         String clientResponse = null;
         try {
-            digest.setUsername("Mufasa");
+            digest.setUsername("Aladdin");
             digest.setRequestMethod("GET");
             digest.setUri("/dir/index.html");
             digest.setCnonce(cnonce);
             digest.setNc("00000001");
             digest.setQop("auth");
 
-            clientResponse = HTTPDigestUtil.clientResponseValue(digest, "Circle Of Life".toCharArray());
+            clientResponse = HTTPDigestUtil.clientResponseValue(digest, "Open Sesame".toCharArray());
         } catch (FormatException e) {
             throw new RuntimeException(e);
         }
 
-        StringBuilder str = new StringBuilder(" username=\"Mufasa\",");
+        StringBuilder str = new StringBuilder(" username=\"Aladdin\",");
 
         str.append("realm=\"" + digest.getRealm() + "\",");
         str.append("nonce=\"").append(digest.getNonce()).append("\",");
