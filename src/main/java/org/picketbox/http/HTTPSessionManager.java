@@ -25,7 +25,7 @@ package org.picketbox.http;
 import javax.servlet.http.HttpSession;
 
 import org.picketbox.core.PicketBoxManager;
-import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.UserContext;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.config.PicketBoxConfiguration;
 import org.picketbox.core.session.DefaultSessionManager;
@@ -46,18 +46,18 @@ public class HTTPSessionManager extends DefaultSessionManager {
     }
 
     @Override
-    protected PicketBoxSession doCreateSession(PicketBoxSubject authenticatedSubject) {
-        PicketBoxHTTPSubject httpSubject = (PicketBoxHTTPSubject) authenticatedSubject;
+    protected PicketBoxSession doCreateSession(UserContext authenticatedUserContext) {
+        HTTPUserContext httpUserContext = (HTTPUserContext) authenticatedUserContext;
 
-        HttpSession httpSession = httpSubject.getRequest().getSession();
+        HttpSession httpSession = httpUserContext.getRequest().getSession();
 
-        httpSession.setAttribute(getUserAttributeName(), httpSubject);
+        httpSession.setAttribute(getUserAttributeName(), httpUserContext);
 
         return new PicketBoxHTTPSession(httpSession);
     }
 
     /**
-     * <p>Returns the attribute name that should be used to store the {@link PicketBoxSubject}.</p>
+     * <p>Returns the attribute name that should be used to store the {@link UserContext}.</p>
      *
      * @return
      */

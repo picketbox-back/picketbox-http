@@ -34,10 +34,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSessionEvent;
 
 import org.picketbox.core.Credential;
-import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.UserContext;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.http.PicketBoxHTTPManager;
-import org.picketbox.http.PicketBoxHTTPSubject;
+import org.picketbox.http.HTTPUserContext;
 
 /**
  * Base class for all the HTTP authentication schemes
@@ -125,7 +125,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
         HttpServletRequest request = (HttpServletRequest) servletReq;
         HttpServletResponse response = (HttpServletResponse) servletResp;
 
-        PicketBoxSubject subject = this.picketBoxManager.getSubject(request);
+        UserContext subject = this.picketBoxManager.getUserContext(request);
 
         if (subject != null && subject.isAuthenticated()) {
             return subject.getPrincipal();
@@ -153,7 +153,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
 
     protected abstract boolean isAuthenticationRequest(HttpServletRequest request);
 
-    protected PicketBoxSubject performAuthentication(HttpServletRequest request, HttpServletResponse response)
+    protected UserContext performAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
 
         Credential credential = getAuthenticationCallbackHandler(request, response);
@@ -163,7 +163,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
             return null;
         }
 
-        PicketBoxSubject subject = this.picketBoxManager.authenticate(new PicketBoxHTTPSubject(request, response, credential));
+        UserContext subject = this.picketBoxManager.authenticate(new HTTPUserContext(request, response, credential));
 
         if (subject != null && subject.isAuthenticated()) {
             // remove from the cache the saved request and store it in the session for further use.

@@ -32,11 +32,11 @@ import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.UserContext;
 import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
-import org.picketbox.core.identity.PicketBoxSubjectPopulator;
+import org.picketbox.core.identity.UserContextPopulator;
 import org.picketbox.http.PicketBoxHTTPManager;
-import org.picketbox.http.PicketBoxHTTPSubject;
+import org.picketbox.http.HTTPUserContext;
 import org.picketbox.http.authorization.resource.WebResource;
 import org.picketbox.http.config.HTTPConfigurationBuilder;
 import org.picketbox.http.config.PicketBoxHTTPConfiguration;
@@ -58,23 +58,17 @@ public class PicketBoxHTTPConfigurationTestCase {
     public void onSetup() {
         HTTPConfigurationBuilder builder = new HTTPConfigurationBuilder();
 
-        builder.identityManager().userPopulator(new PicketBoxSubjectPopulator() {
-
-            /*
-             * (non-Javadoc)
-             *
-             * @see org.picketbox.core.identity.IdentityManager#getIdentity(org.picketbox.core.PicketBoxSubject)
-             */
+        builder.identityManager().userPopulator(new UserContextPopulator() {
             @Override
-            public PicketBoxSubject getIdentity(PicketBoxSubject resultingSubject) {
+            public UserContext getIdentity(UserContext resultingUserContext) {
                 List<Role> roles = new ArrayList<Role>();
 
                 roles.add(new SimpleRole("Manager"));
                 roles.add(new SimpleRole("Financial"));
 
-                resultingSubject.setRoles(roles);
+                resultingUserContext.setRoles(roles);
 
-                return resultingSubject;
+                return resultingUserContext;
             }
         });
 
@@ -111,10 +105,10 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/secure/index.html");
 
-        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential(
+        HTTPUserContext authenticationUserContext = new HTTPUserContext(req, resp, new UsernamePasswordCredential(
                 "admin", "admin"));
 
-        PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
+        UserContext subject = picketBoxManager.authenticate(authenticationUserContext);
 
         Assert.assertNotNull(subject);
     }
@@ -140,10 +134,10 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/notSecured/index.html");
 
-        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential(
+        HTTPUserContext authenticationUserContext = new HTTPUserContext(req, resp, new UsernamePasswordCredential(
                 "admin", "admin"));
 
-        PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
+        UserContext subject = picketBoxManager.authenticate(authenticationUserContext);
 
         Assert.assertNotNull(subject);
         Assert.assertFalse(subject.isAuthenticated());
@@ -171,10 +165,10 @@ public class PicketBoxHTTPConfigurationTestCase {
         req.setContextPath("/test-app");
         req.setRequestURI(req.getContextPath() + "/onlyRoleManager/index.html");
 
-        PicketBoxHTTPSubject authenticationSubject = new PicketBoxHTTPSubject(req, resp, new UsernamePasswordCredential(
+        HTTPUserContext authenticationUserContext = new HTTPUserContext(req, resp, new UsernamePasswordCredential(
                 "admin", "admin"));
 
-        PicketBoxSubject subject = picketBoxManager.authenticate(authenticationSubject);
+        UserContext subject = picketBoxManager.authenticate(authenticationUserContext);
 
         Assert.assertNotNull(subject);
 
