@@ -30,7 +30,7 @@ import javax.servlet.http.HttpSession;
 
 import org.picketbox.core.AbstractPicketBoxManager;
 import org.picketbox.core.PicketBoxManager;
-import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.UserContext;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.authorization.Resource;
 import org.picketbox.http.authorization.resource.WebResource;
@@ -64,22 +64,22 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected boolean doPreAuthentication(PicketBoxSubject subject) {
+    protected boolean doPreAuthentication(UserContext subject) {
         if (this.protectedResourceManager == null) {
             return true;
         }
 
-        PicketBoxHTTPSubject httpSubject = (PicketBoxHTTPSubject) subject;
+        HTTPUserContext httpUserContext = (HTTPUserContext) subject;
 
         ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(createWebResource(
-                httpSubject.getRequest(), httpSubject.getResponse()));
+                httpUserContext.getRequest(), httpUserContext.getResponse()));
 
         return protectedResource.requiresAuthentication();
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean authorize(PicketBoxSubject subject, Resource resource) {
+    public boolean authorize(UserContext subject, Resource resource) {
         if (this.protectedResourceManager != null && subject != null) {
             ProtectedResource protectedResource = this.protectedResourceManager.getProtectedResource(resource);
 
@@ -126,18 +126,18 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
         setSessionManager(sessionManager);
     }
 
-    public PicketBoxSubject getSubject(HttpServletRequest request) {
+    public UserContext getUserContext(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
 
         if (session == null) {
             return null;
         }
 
-        return (PicketBoxSubject) session.getAttribute(getUserAttributeName());
+        return (UserContext) session.getAttribute(getUserAttributeName());
     }
 
     /**
-     * <p>Returns the attribute name that should be used to store the {@link PicketBoxSubject}.</p>
+     * <p>Returns the attribute name that should be used to store the {@link UserContext}.</p>
      *
      * @return
      */
