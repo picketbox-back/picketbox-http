@@ -26,24 +26,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.picketbox.core.Credential;
-import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.UserContext;
 
 /**
  * <p>
- * {@link PicketBoxSubject} implementation for web applications.
+ * {@link UserContext} implementation for web applications.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
-public class PicketBoxHTTPSubject extends PicketBoxSubject {
+public class HTTPUserContext extends UserContext {
 
     private static final String RESPONSE_CONTEXT_DATA = "RESPONSE";
     private static final String REQUEST_CONTEXT_DATA = "REQUEST";
 
     private static final long serialVersionUID = 8826031649152896118L;
 
-    public PicketBoxHTTPSubject(HttpServletRequest request, HttpServletResponse response, Credential credential) {
+    public HTTPUserContext(HttpServletRequest request, HttpServletResponse response, Credential credential) {
         this.contextData.put(REQUEST_CONTEXT_DATA, request);
         this.contextData.put(RESPONSE_CONTEXT_DATA, response);
         setCredential(credential);

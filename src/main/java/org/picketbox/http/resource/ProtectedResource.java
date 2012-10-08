@@ -24,7 +24,7 @@ package org.picketbox.http.resource;
 
 import java.util.Arrays;
 
-import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.UserContext;
 
 /**
  * <p>
@@ -177,7 +177,7 @@ public class ProtectedResource {
         return false;
     }
 
-    public boolean isAllowed(PicketBoxSubject subject) {
+    public boolean isAllowed(UserContext subject) {
         if (this.roles == null || this.roles.length == 0) {
             return true;
         }

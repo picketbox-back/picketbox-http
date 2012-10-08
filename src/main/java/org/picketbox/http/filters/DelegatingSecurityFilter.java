@@ -35,7 +35,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.picketbox.core.PicketBoxSubject;
+import org.picketbox.core.UserContext;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.authorization.AuthorizationManager;
 import org.picketbox.core.authorization.impl.SimpleAuthorizationManager;
@@ -194,13 +194,13 @@ public class DelegatingSecurityFilter implements Filter {
     }
 
     /**
-     * <p>Propagates the authenticated {@link PicketBoxSubject}.</p>
+     * <p>Propagates the authenticated {@link UserContext}.</p>
      *
      * @param httpRequest
      * @throws ServletException
      */
     private void propagateSecurityContext(HttpServletRequest httpRequest) throws ServletException {
-        PicketBoxSubject subject = this.securityManager.getSubject(httpRequest);
+        UserContext subject = this.securityManager.getUserContext(httpRequest);
 
         if (subject != null) {
             try {
@@ -236,8 +236,8 @@ public class DelegatingSecurityFilter implements Filter {
         return resource;
     }
 
-    public PicketBoxSubject getAuthenticatedUser(HttpServletRequest request) {
-        return this.securityManager.getSubject(request);
+    public UserContext getAuthenticatedUser(HttpServletRequest request) {
+        return this.securityManager.getUserContext(request);
     }
 
     private void authenticate(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ServletException {
