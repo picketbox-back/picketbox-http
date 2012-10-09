@@ -55,6 +55,8 @@ import org.picketbox.http.authorization.resource.WebResource;
 import org.picketbox.http.config.ConfigurationBuilderProvider;
 import org.picketbox.http.config.HTTPConfigurationBuilder;
 import org.picketbox.http.config.PicketBoxHTTPConfiguration;
+import org.picketbox.http.wrappers.RequestWrapper;
+import org.picketbox.http.wrappers.ResponseWrapper;
 
 /**
  * A {@link Filter} that delegates to the PicketBox Security Infrastructure
@@ -156,23 +158,29 @@ public class DelegatingSecurityFilter implements Filter {
         sc.setAttribute(PicketBoxConstants.PICKETBOX_MANAGER, this.securityManager);
     }
 
+    /* (non-Javadoc)
+     * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
+     */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
             ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
+        RequestWrapper wrappedRequest = new RequestWrapper(httpRequest, this.securityManager);
+        ResponseWrapper wrappedResponse = new ResponseWrapper(httpResponse, this.securityManager);
+
         try {
-            propagateSecurityContext(httpRequest);
+            propagateSecurityContext(wrappedRequest);
 
-            logout(httpRequest, httpResponse);
+            logout(wrappedRequest, wrappedResponse);
 
-            authenticate(httpRequest, httpResponse);
+            authenticate(wrappedRequest, wrappedResponse);
 
-            authorize(httpRequest, httpResponse);
+            authorize(wrappedRequest, wrappedResponse);
 
             if (!response.isCommitted()) {
-                chain.doFilter(httpRequest, response);
+                chain.doFilter(wrappedRequest, wrappedResponse);
             }
         } finally {
             clearPropagatedSecurityContext();
