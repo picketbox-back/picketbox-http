@@ -22,6 +22,7 @@
 package org.picketbox.http.filters;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -42,12 +43,14 @@ import org.picketbox.core.ctx.SecurityContext;
 import org.picketbox.core.ctx.SecurityContextPropagation;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.core.exceptions.ProcessingException;
+import org.picketbox.http.HTTPUserContext;
 import org.picketbox.http.PicketBoxHTTPManager;
-import org.picketbox.http.authentication.HTTPAuthenticationScheme;
-import org.picketbox.http.authentication.HTTPBasicAuthentication;
-import org.picketbox.http.authentication.HTTPClientCertAuthentication;
-import org.picketbox.http.authentication.HTTPDigestAuthentication;
+import org.picketbox.http.authentication.HTTPBasicCredential;
+import org.picketbox.http.authentication.HTTPClientCertCredential;
+import org.picketbox.http.authentication.HTTPDigestCredential;
 import org.picketbox.http.authentication.HTTPFormAuthentication;
+import org.picketbox.http.authentication.HTTPFormCredential;
+import org.picketbox.http.authentication.HttpServletCredential;
 import org.picketbox.http.authorization.resource.WebResource;
 import org.picketbox.http.config.ConfigurationBuilderProvider;
 import org.picketbox.http.config.HTTPConfigurationBuilder;
@@ -64,7 +67,7 @@ import org.picketbox.http.wrappers.ResponseWrapper;
 public class DelegatingSecurityFilter implements Filter {
 
     private PicketBoxHTTPManager securityManager;
-    private HTTPAuthenticationScheme authenticationScheme;
+    private Class<? extends HttpServletCredential> credentialType;
 
     public DelegatingSecurityFilter() {
     }
@@ -79,6 +82,9 @@ public class DelegatingSecurityFilter implements Filter {
         ServletContext sc = fc.getServletContext();
 
         String authValue = sc.getInitParameter(PicketBoxConstants.AUTHENTICATION_KEY);
+
+        this.credentialType = getSupporttedCredential(authValue);
+
         String authzValue = sc.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
         String configurationProvider = sc.getInitParameter(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER);
         String userAttributeName = sc.getInitParameter(PicketBoxConstants.USER_ATTRIBUTE_NAME);
@@ -100,8 +106,6 @@ public class DelegatingSecurityFilter implements Filter {
         this.securityManager.start();
 
         sc.setAttribute(PicketBoxConstants.PICKETBOX_MANAGER, this.securityManager);
-
-        this.authenticationScheme = getAuthenticationScheme(authValue);
     }
 
     /*
@@ -204,10 +208,31 @@ public class DelegatingSecurityFilter implements Filter {
             return;
         }
 
+        if (this.securityManager.getUserContext(httpRequest) != null
+                && this.securityManager.getUserContext(httpRequest).isAuthenticated()) {
+            return;
+        }
+
         try {
-            this.authenticationScheme.authenticate(httpRequest, httpResponse);
+            HttpServletCredential credential = this.credentialType.getConstructor(
+                    new Class[] { HttpServletRequest.class, HttpServletResponse.class }).newInstance(
+                    new Object[] { httpRequest, httpResponse });
+
+            this.securityManager.authenticate(new HTTPUserContext(httpRequest, httpResponse, credential));
         } catch (AuthenticationException e) {
             throw new ServletException(e);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
         }
     }
 
@@ -252,19 +277,20 @@ public class DelegatingSecurityFilter implements Filter {
      * @return
      * @throws ServletException
      */
-    private HTTPAuthenticationScheme getAuthenticationScheme(String value) throws ServletException {
+    private Class<? extends HttpServletCredential> getSupporttedCredential(String value) throws ServletException {
         if (value != null) {
             if (value.equalsIgnoreCase(PicketBoxConstants.BASIC)) {
-                return new HTTPBasicAuthentication(this.securityManager);
-            }
-            if (value.equalsIgnoreCase(PicketBoxConstants.DIGEST)) {
-                return new HTTPDigestAuthentication(this.securityManager);
-            }
-            if (value.equalsIgnoreCase(PicketBoxConstants.CLIENT_CERT)) {
-                return new HTTPClientCertAuthentication(this.securityManager);
+                this.credentialType = HTTPBasicCredential.class;
+            } else if (value.equalsIgnoreCase(PicketBoxConstants.DIGEST)) {
+                this.credentialType = HTTPDigestCredential.class;
+            } else if (value.equalsIgnoreCase(PicketBoxConstants.CLIENT_CERT)) {
+                this.credentialType = HTTPClientCertCredential.class;
+            } else {
+                this.credentialType = HTTPFormCredential.class;
             }
         }
-        return new HTTPFormAuthentication(this.securityManager);
+
+        return this.credentialType;
     }
 
     /**

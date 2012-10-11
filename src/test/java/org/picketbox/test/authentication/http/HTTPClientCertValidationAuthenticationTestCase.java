@@ -22,11 +22,12 @@
 package org.picketbox.test.authentication.http;
 
 import static junit.framework.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,28 +35,44 @@ import org.junit.Test;
 import org.picketbox.core.UserContext;
 import org.picketbox.core.authentication.AuthenticationStatus;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.util.Base64;
 import org.picketbox.http.HTTPUserContext;
-import org.picketbox.http.authentication.HTTPBasicAuthentication;
-import org.picketbox.http.authentication.HTTPBasicCredential;
+import org.picketbox.http.authentication.HTTPClientCertAuthentication;
+import org.picketbox.http.authentication.HTTPClientCertCredential;
+import org.picketbox.http.config.HTTPConfigurationBuilder;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
 
 /**
- * Unit test the {@link HTTPBasicAuthentication} class
- *
+ * Unit test the {@link HTTPClientCertAuthentication} class
+ * 
  * @author anil saldhana
- * @since July 5, 2012
+ * @since July 9, 2012
  */
-public class HTTPBasicAuthenticationTestCase extends AbstractAuthenticationTest {
+public class HTTPClientCertValidationAuthenticationTestCase extends AbstractAuthenticationTest {
 
     @Before
-    public void setup() throws Exception {
+    public void onSetup() throws Exception {
         super.initialize();
     }
-
+    
+    @Override
+    protected void doConfigureManager(HTTPConfigurationBuilder configuration) {
+        configuration
+            .authentication()
+                .clientCert()
+                    .useCertificateValidation();
+    }
+    
+    /**
+     * <p>
+     * Tests if the authentication is successful when validating the certificate.
+     * By default, the {@link HTTPClientCertAuthentication} is configured with useCertificateValidation == false.
+     * </p>
+     * 
+     * @throws Exception
+     */
     @Test
-    public void testHttpBasic() throws Exception {
+    public void testAuthenticationUsingCertificate() throws Exception {
         TestServletRequest req = new TestServletRequest(new InputStream() {
             @Override
             public int read() throws IOException {
@@ -71,43 +88,34 @@ public class HTTPBasicAuthenticationTestCase extends AbstractAuthenticationTest 
             }
         });
 
-        // Get Positive Authentication
-        req.addHeader(PicketBoxConstants.HTTP_AUTHORIZATION_HEADER, "Basic " + getPositive());
         req.setContextPath("/test");
         req.setRequestURI(req.getContextPath() + "/index.html");
 
-        UserContext authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp, new HTTPBasicCredential(req, resp)));
-        
+        InputStream bis = getClass().getClassLoader().getResourceAsStream("cert/servercert.txt");
+
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(bis);
+        bis.close();
+
+        assertNotNull(cert);
+
+        UserContext authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp,
+                new HTTPClientCertCredential(req, resp)));
+
+        assertNotNull(authenticatedUser);
+        Assert.assertFalse(authenticatedUser.isAuthenticated());
+        Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
+        Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.CONTINUE);
+
+        // Now set the certificate
+        req.setAttribute(PicketBoxConstants.HTTP_CERTIFICATE, new X509Certificate[] { cert });
+
+        authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp, new HTTPClientCertCredential(req,
+                resp)));
+
         assertNotNull(authenticatedUser);
         Assert.assertTrue(authenticatedUser.isAuthenticated());
         Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
         Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.SUCCESS);
-
-        req.clearHeaders();
-        req.getSession().setAttribute(PicketBoxConstants.SUBJECT, null);
-        // Get Negative Authentication
-        req.addHeader(PicketBoxConstants.HTTP_AUTHORIZATION_HEADER, "Basic " + getNegative());
-
-        authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp, new HTTPBasicCredential(req, resp)));
-        
-        assertNotNull(authenticatedUser);
-        Assert.assertFalse(authenticatedUser.isAuthenticated());
-        Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
-        Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.INVALID_CREDENTIALS);
-
-        String basicHeader = resp.getHeader(PicketBoxConstants.HTTP_WWW_AUTHENTICATE);
-        assertTrue(basicHeader.startsWith("basic realm="));
-    }
-
-    private String getPositive() {
-        String str = "Aladdin:Open Sesame";
-        String encoded = Base64.encodeBytes(str.getBytes());
-        return encoded;
-    }
-
-    private String getNegative() {
-        String str = "Aladdin:Bad sesame";
-        String encoded = Base64.encodeBytes(str.getBytes());
-        return encoded;
     }
 }

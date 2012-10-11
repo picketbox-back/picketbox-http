@@ -19,32 +19,45 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 package org.picketbox.http.authentication;
 
-import java.security.Principal;
-
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpSessionListener;
-
-import org.picketbox.core.exceptions.AuthenticationException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
- * HTTP Authentication Scheme
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
- * @author anil saldhana
- * @since Jul 6, 2012
  */
-public interface HTTPAuthenticationScheme extends HttpSessionListener {
-    String REALM = "PicketBox Realm";
+public class HTTPDigestCredential implements HttpServletCredential {
 
-    /**
-     * Authenticate an user
-     *
-     * @param servletReq
-     * @param servletResp
-     * @return
-     * @throws AuthenticationException
+    private HttpServletRequest request;
+    private HttpServletResponse response;
+    private String userName;
+
+    public HTTPDigestCredential(HttpServletRequest request, HttpServletResponse response) {
+        this.request = request;
+        this.response = response;
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.http.authentication.HttpServletCredential#getRequest()
      */
-    Principal authenticate(ServletRequest servletReq, ServletResponse servletResp) throws AuthenticationException;
+    @Override
+    public HttpServletRequest getRequest() {
+        return this.request;
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.http.authentication.HttpServletCredential#getResponse()
+     */
+    @Override
+    public HttpServletResponse getResponse() {
+        return this.response;
+    }
+
+    @Override
+    public String getUserName() {
+        return this.userName;
+    }
 }

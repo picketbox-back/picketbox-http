@@ -50,7 +50,7 @@ import org.picketbox.test.http.TestServletResponse;
  * @author anil saldhana
  * @since July 9, 2012
  */
-public class HTTPFormAuthenticationTestCase extends AbstractAuthenticationTest {
+public class HTTPDefaultFormAuthenticationTestCase extends AbstractAuthenticationTest {
 
     private static final String CONTEXT_PATH = "/msite";
     
@@ -61,23 +61,13 @@ public class HTTPFormAuthenticationTestCase extends AbstractAuthenticationTest {
         super.initialize();
     }
     
-    /* (non-Javadoc)
-     * @see org.picketbox.test.authentication.http.AbstractAuthenticationTest#doConfigureManager(org.picketbox.http.config.HTTPConfigurationBuilder)
-     */
-    @Override
-    protected void doConfigureManager(HTTPConfigurationBuilder configuration) {
-        configuration.authentication().form().defaultPage("/home.jsp");
-        configuration.authentication().form().authPage("/customLogin.jsp");
-        configuration.authentication().form().errorPage("/error.jsp");
-    }
-
     /**
-     * <p>Tests if the authentication when using a custom configuration.</p>
+     * <p>Tests if the authentication when using the default configuration.</p>
      * 
      * @throws Exception
      */
     @Test
-    public void testHttpForm() throws Exception {
+    public void testDefaultConfiguration() throws Exception {
         TestServletRequest req = new TestServletRequest(this.sc, new InputStream() {
             @Override
             public int read() throws IOException {
@@ -114,7 +104,7 @@ public class HTTPFormAuthenticationTestCase extends AbstractAuthenticationTest {
         TestRequestDispatcher rd = sc.getLast();
         assertEquals(rd.getRequest(), req);
 
-        assertEquals("/customLogin.jsp", rd.getRequestUri());
+        assertEquals("/login.jsp", rd.getRequestUri());
 
         // Now assume we have the login page. Lets post
         TestServletRequest newReq = new TestServletRequest(new InputStream() {
@@ -137,6 +127,6 @@ public class HTTPFormAuthenticationTestCase extends AbstractAuthenticationTest {
         Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.SUCCESS);
         
         // After authentication, we should be redirected to the default page
-        assertEquals(resp.getSendRedirectedURI(), CONTEXT_PATH + "/home.jsp");
+        assertEquals(resp.getSendRedirectedURI(), orig);
     }
 }

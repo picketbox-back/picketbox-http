@@ -27,17 +27,18 @@ import java.io.IOException;
 import java.security.Principal;
 
 import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSessionEvent;
 
 import org.picketbox.core.Credential;
+import org.picketbox.core.PicketBoxMessages;
 import org.picketbox.core.UserContext;
+import org.picketbox.core.authentication.AuthenticationResult;
+import org.picketbox.core.authentication.AuthenticationStatus;
+import org.picketbox.core.authentication.impl.AbstractAuthenticationMechanism;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.http.PicketBoxHTTPManager;
-import org.picketbox.http.HTTPUserContext;
+import org.picketbox.http.config.HTTPAuthenticationConfiguration;
 
 /**
  * Base class for all the HTTP authentication schemes
@@ -45,16 +46,14 @@ import org.picketbox.http.HTTPUserContext;
  * @author anil saldhana
  * @since Jul 6, 2012
  */
-public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationScheme {
+public abstract class AbstractHTTPAuthentication extends AbstractAuthenticationMechanism {
 
     private RequestCache requestCache = new RequestCache();
-
-    private PicketBoxHTTPManager picketBoxManager;
 
     /**
      * Injectable realm name
      */
-    protected String realmName = HTTPAuthenticationScheme.REALM;
+    protected String realmName = "PicketBox Realm";
 
     private static final String DEFAULT_PAGE_URL = "/";
 
@@ -72,10 +71,6 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
      * The FORM error page. It should always start with a '/'
      */
     protected String formErrorPage = "/error.jsp";
-
-    public AbstractHTTPAuthentication(PicketBoxHTTPManager securityManager) {
-        this.picketBoxManager = securityManager;
-    }
 
     /**
      * The FORM login page. It should always start with a '/'
@@ -99,33 +94,28 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
     }
 
     public String getRealmName() {
-        return realmName;
+        return this.realmName;
     }
 
     public void setRealmName(String realmName) {
         this.realmName = realmName;
     }
 
-    @Override
-    public void sessionCreated(HttpSessionEvent se) {
-    }
-
-    @Override
-    public void sessionDestroyed(HttpSessionEvent se) {
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.picketbox.http.authentication.HTTPAuthenticationScheme#authenticate(javax.servlet.ServletRequest,
-     * javax.servlet.ServletResponse)
+    /* (non-Javadoc)
+     * @see org.picketbox.core.authentication.impl.AbstractAuthenticationMechanism#doAuthenticate(org.picketbox.core.Credential, org.picketbox.core.authentication.AuthenticationResult)
      */
     @Override
-    public Principal authenticate(ServletRequest servletReq, ServletResponse servletResp) throws AuthenticationException {
-        HttpServletRequest request = (HttpServletRequest) servletReq;
-        HttpServletResponse response = (HttpServletResponse) servletResp;
+    protected Principal doAuthenticate(Credential credential, AuthenticationResult result) throws AuthenticationException {
+        if (!(credential instanceof HttpServletCredential)) {
+            throw PicketBoxMessages.MESSAGES.unexpectedCredentialType(credential, HttpServletCredential.class);
+        }
 
-        UserContext subject = this.picketBoxManager.getUserContext(request);
+        HttpServletCredential httpCredential = (HttpServletCredential) credential;
+
+        HttpServletRequest request = httpCredential.getRequest();
+        HttpServletResponse response = httpCredential.getResponse();
+
+        UserContext subject = getPicketBoxManager().getUserContext(request);
 
         if (subject != null && subject.isAuthenticated()) {
             return subject.getPrincipal();
@@ -134,38 +124,37 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
         boolean jSecurityCheck = isAuthenticationRequest(request);
 
         if (!jSecurityCheck) {
-            if (this.picketBoxManager.requiresAuthentication(request, response)) {
+            if (getPicketBoxManager().requiresAuthentication(request, response)) {
                 this.requestCache.saveRequest(request);
+                result.setStatus(AuthenticationStatus.CONTINUE);
                 challengeClient(request, response);
             }
 
             return null;
         }
 
-        subject = performAuthentication(request, response);
+        Principal authenticatedPrincipal = performAuthentication(request, response);
 
-        if (subject == null || !subject.isAuthenticated()) {
-            return null;
+        if (authenticatedPrincipal == null) {
+            result.setStatus(AuthenticationStatus.INVALID_CREDENTIALS);
         }
 
-        return subject.getPrincipal();
+        return authenticatedPrincipal;
     }
 
     protected abstract boolean isAuthenticationRequest(HttpServletRequest request);
 
-    protected UserContext performAuthentication(HttpServletRequest request, HttpServletResponse response)
+    protected Principal performAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
 
-        Credential credential = getAuthenticationCallbackHandler(request, response);
+        Principal principal = doHTTPAuthentication(request, response);
 
-        if (credential == null) {
-            challengeClient(request, response);
+        if (principal == null) {
+            sendErrorPage(request, response);
             return null;
         }
 
-        UserContext subject = this.picketBoxManager.authenticate(new HTTPUserContext(request, response, credential));
-
-        if (subject != null && subject.isAuthenticated()) {
+        if (principal != null) {
             // remove from the cache the saved request and store it in the session for further use.
             SavedRequest savedRequest = this.requestCache.removeAndStoreSavedRequestInSession(request);
             String requestedURI = null;
@@ -176,25 +165,23 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
 
             // if the user has explicit defined a default page url, use it to redirect the user after a successful
             // authentication.
-            if (!this.defaultPage.equals(DEFAULT_PAGE_URL) || requestedURI == null) {
-                requestedURI = request.getContextPath() + this.defaultPage;
+            if (!getDefaultPage().equals(DEFAULT_PAGE_URL) || requestedURI == null) {
+                requestedURI = request.getContextPath() + getDefaultPage();
             }
 
             sendRedirect(response, requestedURI);
-        } else {
-            sendErrorPage(request, response);
         }
 
-        return subject;
+        return principal;
     }
 
-    protected abstract Credential getAuthenticationCallbackHandler(HttpServletRequest request, HttpServletResponse response);
+    protected abstract Principal doHTTPAuthentication(HttpServletRequest request, HttpServletResponse response);
 
     protected abstract void challengeClient(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException;
 
     protected void sendErrorPage(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        sendRedirect(response, request.getContextPath() + this.formErrorPage);
+        sendRedirect(response, request.getContextPath() + getFormErrorPage());
     }
 
     protected void sendRedirect(HttpServletResponse response, String redirectUrl) throws AuthenticationException {
@@ -206,7 +193,7 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
     }
 
     protected void forwardLoginPage(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        RequestDispatcher rd = request.getServletContext().getRequestDispatcher(this.formAuthPage);
+        RequestDispatcher rd = request.getServletContext().getRequestDispatcher(getFormAuthPage());
         if (rd == null)
             throw MESSAGES.unableToFindRequestDispatcher();
 
@@ -217,4 +204,27 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
         }
     }
 
+    /* (non-Javadoc)
+     * @see org.picketbox.core.authentication.impl.AbstractAuthenticationMechanism#getPicketBoxManager()
+     */
+    @Override
+    protected PicketBoxHTTPManager getPicketBoxManager() {
+        return (PicketBoxHTTPManager) super.getPicketBoxManager();
+    }
+
+    protected HTTPAuthenticationConfiguration getAuthenticationConfig() {
+        return (HTTPAuthenticationConfiguration) getPicketBoxManager().getConfiguration().getAuthentication();
+    }
+
+    public String getDefaultPage() {
+        return this.defaultPage;
+    }
+
+    public String getFormAuthPage() {
+        return this.formAuthPage;
+    }
+
+    public String getFormErrorPage() {
+        return this.formErrorPage;
+    }
 }

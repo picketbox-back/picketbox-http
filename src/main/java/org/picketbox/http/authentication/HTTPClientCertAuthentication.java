@@ -25,17 +25,20 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.picketbox.core.Credential;
+import org.picketbox.core.PicketBoxPrincipal;
+import org.picketbox.core.authentication.AuthenticationInfo;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.credential.CertificateCredential;
-import org.picketbox.core.authentication.credential.TrustedUsernameCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
-import org.picketbox.http.PicketBoxHTTPManager;
+import org.picketbox.http.config.HTTPAuthenticationConfiguration;
+import org.picketbox.http.config.HTTPClientCertConfiguration;
+import org.picketlink.idm.model.User;
 
 /**
  * Perform HTTP Client Certificate Authentication
@@ -49,10 +52,21 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
      * Use Certificate validation directly rather than username/cred model
      */
     protected boolean useCertificateValidation = false;
-    private boolean useCNAsPrincipal;
+    private boolean useCNAsPrincipal = true;
 
-    public HTTPClientCertAuthentication(PicketBoxHTTPManager securityManager) {
-        super(securityManager);
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.picketbox.core.authentication.AuthenticationMechanism#getAuthenticationInfo()
+     */
+    @Override
+    public List<AuthenticationInfo> getAuthenticationInfo() {
+        List<AuthenticationInfo> info = new ArrayList<AuthenticationInfo>();
+
+        info.add(new AuthenticationInfo("HTTP CLIENT-CERT Authentication Credential",
+                "Authenticates users using the HTTP CLIENT-CERT Authentication scheme.", HTTPClientCertCredential.class));
+
+        return info;
     }
 
     /**
@@ -76,41 +90,50 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
      * HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
     @Override
-    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request, HttpServletResponse response) {
-
+    protected Principal doHTTPAuthentication(HttpServletRequest request, HttpServletResponse response) {
         X509Certificate[] certs = (X509Certificate[]) request.getAttribute(PicketBoxConstants.HTTP_CERTIFICATE);
 
         if (certs != null) {
-            if (useCertificateValidation) {
-                return new CertificateCredential(certs);
+            X509Certificate clientCertificate = certs[0];
+
+            String username = getCertificatePrincipal(clientCertificate).getName();
+
+            if (isUseCNAsPrincipal()) {
+                Properties prop = new Properties();
+                try {
+                    prop.load(new StringReader(username.replaceAll(",", "\n")));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                username = prop.getProperty("CN");
             }
 
-            for (X509Certificate cert : certs) {
-                // Get the username
-                Principal certprincipal = cert.getSubjectDN();
-                if (certprincipal == null) {
-                    certprincipal = cert.getIssuerDN();
-                }
+            User user = getIdentityManager().getUser(getCertificatePrincipal(clientCertificate).getName());
 
-                if (certprincipal == null)
-                    return null;
-
-                String username = certprincipal.getName();
-
-                if (this.useCNAsPrincipal) {
-                    Properties prop = new Properties();
-                    try {
-                        prop.load(new StringReader(username.replaceAll(",", "\n")));
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            if (user != null) {
+                if (isUseCertificateValidation()) {
+                    if (getIdentityManager().validateCertificate(user, clientCertificate)) {
+                        return new PicketBoxPrincipal(user.getKey());
                     }
-                    username = prop.getProperty("CN");
                 }
 
-                return new TrustedUsernameCredential(username);
+                if (isUseCNAsPrincipal()) {
+                    return new PicketBoxPrincipal(username);
+                }
             }
         }
+
         return null;
+    }
+
+    private Principal getCertificatePrincipal(X509Certificate cert) {
+        Principal certprincipal = cert.getSubjectDN();
+
+        if (certprincipal == null) {
+            certprincipal = cert.getIssuerDN();
+        }
+        return certprincipal;
     }
 
     @Override
@@ -118,15 +141,34 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
 
     }
 
-    /**
-     * <p>
-     * Indicates that the CN from the certificate's subjectDN should be used as the username. The authentication will assume
-     * that the certificate was already validated and the username is trusted.
-     * </p>
-     *
-     * @param useCNAsPrincipal
-     */
-    public void setUseCNAsPrincipal(boolean useCNAsPrincipal) {
-        this.useCNAsPrincipal = useCNAsPrincipal;
+    public boolean isUseCertificateValidation() {
+        HTTPClientCertConfiguration clientCertConfig = getClientCertAuthenticationConfig();
+
+        if (clientCertConfig != null) {
+            this.useCertificateValidation = clientCertConfig.isUseCertificateValidation();
+        }
+
+        return this.useCertificateValidation;
     }
+
+    private HTTPClientCertConfiguration getClientCertAuthenticationConfig() {
+        HTTPAuthenticationConfiguration authenticationConfig = getAuthenticationConfig();
+
+        if (authenticationConfig != null) {
+            return authenticationConfig.getClientCertConfiguration();
+        }
+
+        return null;
+    }
+
+    public boolean isUseCNAsPrincipal() {
+        HTTPClientCertConfiguration clientCertConfig = getClientCertAuthenticationConfig();
+
+        if (clientCertConfig != null) {
+            this.useCNAsPrincipal = clientCertConfig.isUseCNAsPrincipal();
+        }
+
+        return this.useCNAsPrincipal;
+    }
+
 }

@@ -22,8 +22,13 @@
 
 package org.picketbox.http.config;
 
+import org.picketbox.core.config.AuthenticationConfiguration;
 import org.picketbox.core.config.AuthenticationConfigurationBuilder;
 import org.picketbox.core.config.ConfigurationBuilder;
+import org.picketbox.http.authentication.HTTPBasicAuthentication;
+import org.picketbox.http.authentication.HTTPClientCertAuthentication;
+import org.picketbox.http.authentication.HTTPDigestAuthentication;
+import org.picketbox.http.authentication.HTTPFormAuthentication;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -31,8 +36,50 @@ import org.picketbox.core.config.ConfigurationBuilder;
  */
 public class HTTPAuthenticationConfigurationBuilder extends AuthenticationConfigurationBuilder {
 
+    private final HTTPClientCertConfigurationBuilder clientCertAuthentication;
+    private final HTTPDigestConfigurationBuilder digestAuthentication;
+    private HTTPFormConfigurationBuilder formAuthentication;
+
     public HTTPAuthenticationConfigurationBuilder(ConfigurationBuilder builder) {
         super(builder);
+        this.clientCertAuthentication = new HTTPClientCertConfigurationBuilder(builder);
+        this.digestAuthentication = new HTTPDigestConfigurationBuilder(builder);
+        this.formAuthentication = new HTTPFormConfigurationBuilder(builder);
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.config.AuthenticationConfigurationBuilder#setDefaults()
+     */
+    @Override
+    protected void setDefaults() {
+        super.setDefaults();
+
+        // add the defaults http authentication mechanisms
+        this.mechanisms.add(new HTTPFormAuthentication());
+        this.mechanisms.add(new HTTPDigestAuthentication());
+        this.mechanisms.add(new HTTPBasicAuthentication());
+        this.mechanisms.add(new HTTPClientCertAuthentication());
+    }
+
+    public HTTPClientCertConfigurationBuilder clientCert() {
+        return this.clientCertAuthentication;
+    }
+
+    public HTTPDigestConfigurationBuilder digest() {
+        return this.digestAuthentication;
+    }
+
+    public HTTPFormConfigurationBuilder form() {
+        return this.formAuthentication;
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.config.AuthenticationConfigurationBuilder#doBuild()
+     */
+    @Override
+    public AuthenticationConfiguration doBuild() {
+        return new HTTPAuthenticationConfiguration(this.mechanisms, this.builder.eventManager().build(),
+                this.clientCertAuthentication.build(), this.digestAuthentication.build(), this.formAuthentication.build());
     }
 
 }

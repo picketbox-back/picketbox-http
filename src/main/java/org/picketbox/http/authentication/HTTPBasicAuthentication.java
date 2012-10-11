@@ -22,16 +22,18 @@
 package org.picketbox.http.authentication;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.picketbox.core.Credential;
+import org.picketbox.core.PicketBoxPrincipal;
+import org.picketbox.core.authentication.AuthenticationInfo;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.core.util.Base64;
-import org.picketbox.http.PicketBoxHTTPManager;
+import org.picketlink.idm.model.User;
 
 /**
  * Perform HTTP Basic Authentication
@@ -41,8 +43,16 @@ import org.picketbox.http.PicketBoxHTTPManager;
  */
 public class HTTPBasicAuthentication extends AbstractHTTPAuthentication {
 
-    public HTTPBasicAuthentication(PicketBoxHTTPManager securityManager) {
-        super(securityManager);
+    /* (non-Javadoc)
+     * @see org.picketbox.core.authentication.AuthenticationMechanism#getAuthenticationInfo()
+     */
+    @Override
+    public List<AuthenticationInfo> getAuthenticationInfo() {
+        List<AuthenticationInfo> info = new ArrayList<AuthenticationInfo>();
+
+        info.add(new AuthenticationInfo("HTTP BASIC Authentication Credential", "Authenticates users using the HTTP BASIC Authentication scheme.", HTTPBasicCredential.class));
+
+        return info;
     }
 
     /*
@@ -69,7 +79,7 @@ public class HTTPBasicAuthentication extends AbstractHTTPAuthentication {
      * HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
     @Override
-    protected Credential getAuthenticationCallbackHandler(HttpServletRequest request, HttpServletResponse response) {
+    protected PicketBoxPrincipal doHTTPAuthentication(HttpServletRequest request, HttpServletResponse response) {
         String authorizationHeader = getAuthorizationHeader(request);
 
         int whitespaceIndex = authorizationHeader.indexOf(' ');
@@ -86,7 +96,11 @@ public class HTTPBasicAuthentication extends AbstractHTTPAuthentication {
                     String username = authorizationHeader.substring(0, indexOfColon);
                     String password = authorizationHeader.substring(indexOfColon + 1);
 
-                    return new UsernamePasswordCredential(username, password);
+                    User user = getIdentityManager().getUser(username);
+
+                    if (user != null && getIdentityManager().validatePassword(user, password)) {
+                        return new PicketBoxPrincipal(username);
+                    }
                 }
             }
         }
@@ -96,7 +110,7 @@ public class HTTPBasicAuthentication extends AbstractHTTPAuthentication {
 
     @Override
     protected void challengeClient(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        response.setHeader(PicketBoxConstants.HTTP_WWW_AUTHENTICATE, "basic realm=\"" + realmName + '"');
+        response.setHeader(PicketBoxConstants.HTTP_WWW_AUTHENTICATE, "basic realm=\"" + this.realmName + '"');
 
         try {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -109,4 +123,5 @@ public class HTTPBasicAuthentication extends AbstractHTTPAuthentication {
     protected void sendErrorPage(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         challengeClient(request, response);
     }
+
 }
