@@ -88,7 +88,8 @@ public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest
         // Call the server to get the digest challenge
         UserContext authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp,
                 new HTTPDigestCredential(req, resp)));
-
+        
+        // mechanism is telling us that we need to continue with the authentication.
         assertNotNull(authenticatedUser);
         Assert.assertFalse(authenticatedUser.isAuthenticated());
         Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());

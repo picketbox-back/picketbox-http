@@ -46,23 +46,25 @@ import org.picketbox.test.http.TestServletResponse;
 
 /**
  * Unit test the {@link HTTPFormAuthentication} class
- *
+ * 
  * @author anil saldhana
  * @since July 9, 2012
  */
 public class HTTPDefaultFormAuthenticationTestCase extends AbstractAuthenticationTest {
 
     private static final String CONTEXT_PATH = "/msite";
-    
+
     private TestServletContext sc = new TestServletContext(new HashMap<String, String>());
 
     @Before
     public void setup() throws Exception {
         super.initialize();
     }
-    
+
     /**
-     * <p>Tests if the authentication when using the default configuration.</p>
+     * <p>
+     * Tests if the authentication when using the default configuration.
+     * </p>
      * 
      * @throws Exception
      */
@@ -95,11 +97,12 @@ public class HTTPDefaultFormAuthenticationTestCase extends AbstractAuthenticatio
         UserContext authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp,
                 new HTTPFormCredential(req, resp)));
 
+        // mechanism is telling us that we need to continue with the authentication.
         assertNotNull(authenticatedUser);
         Assert.assertFalse(authenticatedUser.isAuthenticated());
         Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
         Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.CONTINUE);
-        
+
         // We will test that the request dispatcher is set on the form login page
         TestRequestDispatcher rd = sc.getLast();
         assertEquals(rd.getRequest(), req);
@@ -118,14 +121,14 @@ public class HTTPDefaultFormAuthenticationTestCase extends AbstractAuthenticatio
         newReq.setParameter(PicketBoxConstants.HTTP_FORM_J_USERNAME, "Aladdin");
         newReq.setParameter(PicketBoxConstants.HTTP_FORM_J_PASSWORD, "Open Sesame");
 
-        authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(newReq, resp,
-                new HTTPFormCredential(newReq, resp)));
+        authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(newReq, resp, new HTTPFormCredential(newReq,
+                resp)));
 
         assertNotNull(authenticatedUser);
         Assert.assertTrue(authenticatedUser.isAuthenticated());
         Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
         Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.SUCCESS);
-        
+
         // After authentication, we should be redirected to the default page
         assertEquals(resp.getSendRedirectedURI(), orig);
     }

@@ -54,19 +54,16 @@ public class HTTPClientCertValidationAuthenticationTestCase extends AbstractAuth
     public void onSetup() throws Exception {
         super.initialize();
     }
-    
+
     @Override
     protected void doConfigureManager(HTTPConfigurationBuilder configuration) {
-        configuration
-            .authentication()
-                .clientCert()
-                    .useCertificateValidation();
+        configuration.authentication().clientCert().useCertificateValidation();
     }
-    
+
     /**
      * <p>
-     * Tests if the authentication is successful when validating the certificate.
-     * By default, the {@link HTTPClientCertAuthentication} is configured with useCertificateValidation == false.
+     * Tests if the authentication is successful when validating the certificate. By default, the
+     * {@link HTTPClientCertAuthentication} is configured with useCertificateValidation == false.
      * </p>
      * 
      * @throws Exception
@@ -102,6 +99,7 @@ public class HTTPClientCertValidationAuthenticationTestCase extends AbstractAuth
         UserContext authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp,
                 new HTTPClientCertCredential(req, resp)));
 
+        // mechanism is telling us that we need to continue with the authentication.
         assertNotNull(authenticatedUser);
         Assert.assertFalse(authenticatedUser.isAuthenticated());
         Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());

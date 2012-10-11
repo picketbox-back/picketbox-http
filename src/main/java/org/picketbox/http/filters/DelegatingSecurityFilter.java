@@ -34,10 +34,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.picketbox.core.PicketBoxManager;
 import org.picketbox.core.UserContext;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.authorization.AuthorizationManager;
 import org.picketbox.core.authorization.impl.SimpleAuthorizationManager;
+import org.picketbox.core.config.ConfigurationBuilder;
 import org.picketbox.core.ctx.PicketBoxSecurityContext;
 import org.picketbox.core.ctx.SecurityContext;
 import org.picketbox.core.ctx.SecurityContextPropagation;
@@ -48,7 +50,6 @@ import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPBasicCredential;
 import org.picketbox.http.authentication.HTTPClientCertCredential;
 import org.picketbox.http.authentication.HTTPDigestCredential;
-import org.picketbox.http.authentication.HTTPFormAuthentication;
 import org.picketbox.http.authentication.HTTPFormCredential;
 import org.picketbox.http.authentication.HttpServletCredential;
 import org.picketbox.http.authorization.resource.WebResource;
@@ -59,18 +60,24 @@ import org.picketbox.http.wrappers.RequestWrapper;
 import org.picketbox.http.wrappers.ResponseWrapper;
 
 /**
- * A {@link Filter} that delegates to the PicketBox Security Infrastructure
+ * <p>
+ * A {@link Filter} that delegates to the PicketBox Security Infrastructure.
+ * </p>
+ *
+ * <p>
+ * This filter can be configured in two ways: using PicketBox default configuration or providing a
+ * {@link ConfigurationBuilderProvider}.
+ * </p>
  *
  * @author anil saldhana
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  * @since Jul 10, 2012
  */
 public class DelegatingSecurityFilter implements Filter {
 
     private PicketBoxHTTPManager securityManager;
     private Class<? extends HttpServletCredential> credentialType;
-
-    public DelegatingSecurityFilter() {
-    }
 
     @Override
     public void init(FilterConfig fc) throws ServletException {
@@ -79,33 +86,49 @@ public class DelegatingSecurityFilter implements Filter {
             return;
         }
 
-        ServletContext sc = fc.getServletContext();
+        // configures the credential to be used during authentication
+        this.credentialType = getSupporttedCredential(fc.getServletContext());
 
-        String authValue = sc.getInitParameter(PicketBoxConstants.AUTHENTICATION_KEY);
+        // gets the configuration that will be used to configure and start the manager
+        HTTPConfigurationBuilder configuration = getConfigurationBuilder(fc.getServletContext());
 
-        this.credentialType = getSupporttedCredential(authValue);
+        // create and start the manager
+        this.securityManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
+        this.securityManager.start();
 
-        String authzValue = sc.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
-        String configurationProvider = sc.getInitParameter(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER);
-        String userAttributeName = sc.getInitParameter(PicketBoxConstants.USER_ATTRIBUTE_NAME);
+        // sets the manager as a context attribute and make it available for the application
+        fc.getServletContext().setAttribute(PicketBoxConstants.PICKETBOX_MANAGER, this.securityManager);
+    }
+
+    /**
+     * <p>
+     * Returns a {@link ConfigurationBuilder} with the necessary configuration to build a {@link PicketBoxManager} instance. If
+     * a specific {@link ConfigurationBuilderProvider} was specified by the
+     * <code>PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER</code> context parameter it will be used. Othwewise a default
+     * {@link HTTPConfigurationBuilder} will be created.
+     * </p>
+     *
+     * @param servletContext
+     * @return
+     */
+    private HTTPConfigurationBuilder getConfigurationBuilder(ServletContext servletContext) {
+        String authzValue = servletContext.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
+        String configurationProvider = servletContext.getInitParameter(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER);
+        String userAttributeName = servletContext.getInitParameter(PicketBoxConstants.USER_ATTRIBUTE_NAME);
 
         HTTPConfigurationBuilder configuration = null;
 
         // a ConfigurationBuilderProvider was provided, let's build the configuration using it.
         if (configurationProvider != null) {
             configuration = ((ConfigurationBuilderProvider) SecurityActions.instance(getClass(), configurationProvider))
-                    .getBuilder(sc);
+                    .getBuilder(servletContext);
         } else {
             configuration = new HTTPConfigurationBuilder();
         }
 
         configuration.authorization().manager(getAuthorizationManager(authzValue));
         configuration.sessionManager().userAttributeName(userAttributeName);
-
-        this.securityManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-        this.securityManager.start();
-
-        sc.setAttribute(PicketBoxConstants.PICKETBOX_MANAGER, this.securityManager);
+        return configuration;
     }
 
     /*
@@ -120,6 +143,7 @@ public class DelegatingSecurityFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
+        // wraps the request and response with PicketBox wrapper classes
         RequestWrapper wrappedRequest = new RequestWrapper(httpRequest, this.securityManager);
         ResponseWrapper wrappedResponse = new ResponseWrapper(httpResponse, this.securityManager);
 
@@ -208,6 +232,7 @@ public class DelegatingSecurityFilter implements Filter {
             return;
         }
 
+        // user is already authenticated
         if (this.securityManager.getUserContext(httpRequest) != null
                 && this.securityManager.getUserContext(httpRequest).isAuthenticated()) {
             return;
@@ -268,26 +293,32 @@ public class DelegatingSecurityFilter implements Filter {
 
     /**
      * <p>
-     * Returns a {@link HTTPAuthenticationScheme} instance for the given value. Possible values are BASIC, DIGEST AND
-     * CLIENT_CERT. If the provided value is null or does not match any of the expected a {@link HTTPFormAuthentication}
-     * instance is returned.
+     * Returns a {@link HttpServletCredential} class that should be used to create user credentials when authenticating users.
+     * The specific class is returned according with the <code>PicketBoxConstants.AUTHENTICATION_KEY</code> context parameter.
+     * Possible values are BASIC, DIGEST AND CLIENT_CERT. If none of them is provided the default credential will be of type
+     * {@link HTTPFormCredential}.
      * </p>
      *
-     * @param value
+     * @param servletContext
      * @return
      * @throws ServletException
      */
-    private Class<? extends HttpServletCredential> getSupporttedCredential(String value) throws ServletException {
-        if (value != null) {
-            if (value.equalsIgnoreCase(PicketBoxConstants.BASIC)) {
+    private Class<? extends HttpServletCredential> getSupporttedCredential(ServletContext servletContext)
+            throws ServletException {
+        String authenticationType = servletContext.getInitParameter(PicketBoxConstants.AUTHENTICATION_KEY);
+
+        if (authenticationType != null) {
+            if (authenticationType.equalsIgnoreCase(PicketBoxConstants.BASIC)) {
                 this.credentialType = HTTPBasicCredential.class;
-            } else if (value.equalsIgnoreCase(PicketBoxConstants.DIGEST)) {
+            } else if (authenticationType.equalsIgnoreCase(PicketBoxConstants.DIGEST)) {
                 this.credentialType = HTTPDigestCredential.class;
-            } else if (value.equalsIgnoreCase(PicketBoxConstants.CLIENT_CERT)) {
+            } else if (authenticationType.equalsIgnoreCase(PicketBoxConstants.CLIENT_CERT)) {
                 this.credentialType = HTTPClientCertCredential.class;
-            } else {
-                this.credentialType = HTTPFormCredential.class;
             }
+        }
+
+        if (this.credentialType == null) {
+            this.credentialType = HTTPFormCredential.class;
         }
 
         return this.credentialType;

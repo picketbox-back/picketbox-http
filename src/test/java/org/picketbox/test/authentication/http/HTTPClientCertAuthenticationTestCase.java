@@ -49,27 +49,27 @@ import org.picketbox.test.http.TestServletResponse;
  * @since July 9, 2012
  */
 public class HTTPClientCertAuthenticationTestCase extends AbstractAuthenticationTest {
-    
+
     @Before
     public void onSetup() throws Exception {
         super.initialize();
     }
-    
-    /* (non-Javadoc)
-     * @see org.picketbox.test.authentication.http.AbstractAuthenticationTest#doConfigureManager(org.picketbox.http.config.HTTPConfigurationBuilder)
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.picketbox.test.authentication.http.AbstractAuthenticationTest#doConfigureManager(org.picketbox.http.config.
+     * HTTPConfigurationBuilder)
      */
     @Override
     protected void doConfigureManager(HTTPConfigurationBuilder configuration) {
-        configuration
-            .authentication()
-                .clientCert()
-                    .useCNAsPrincipal();
+        configuration.authentication().clientCert().useCNAsPrincipal();
     }
-    
+
     /**
      * <p>
-     * Tests if the authentication is successful when validating the Subject CN from the provided certificate.
-     * By default, the {@link HTTPClientCertAuthentication} is configured with useCNAsPrincipal == true.
+     * Tests if the authentication is successful when validating the Subject CN from the provided certificate. By default, the
+     * {@link HTTPClientCertAuthentication} is configured with useCNAsPrincipal == true.
      * </p>
      * 
      * @throws Exception
@@ -105,6 +105,7 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
         UserContext authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp,
                 new HTTPClientCertCredential(req, resp)));
 
+        // mechanism is telling us that we need to continue with the authentication.
         assertNotNull(authenticatedUser);
         Assert.assertFalse(authenticatedUser.isAuthenticated());
         Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
@@ -121,5 +122,5 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
         Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
         Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.SUCCESS);
     }
-    
+
 }

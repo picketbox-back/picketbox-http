@@ -38,6 +38,7 @@ import org.picketbox.core.util.Base64;
 import org.picketbox.http.HTTPUserContext;
 import org.picketbox.http.authentication.HTTPBasicAuthentication;
 import org.picketbox.http.authentication.HTTPBasicCredential;
+import org.picketbox.http.config.HTTPConfigurationBuilder;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
 
@@ -52,6 +53,11 @@ public class HTTPBasicAuthenticationTestCase extends AbstractAuthenticationTest 
     @Before
     public void setup() throws Exception {
         super.initialize();
+    }
+    
+    @Override
+    protected void doConfigureManager(HTTPConfigurationBuilder configuration) {
+        configuration.authentication().digest().realm("Custom Realm");
     }
 
     @Test
