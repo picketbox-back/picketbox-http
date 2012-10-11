@@ -34,9 +34,7 @@ import java.security.cert.X509Certificate;
 import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPClientCertAuthentication;
-import org.picketbox.http.config.PicketBoxHTTPConfiguration;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
 
@@ -54,15 +52,9 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
     public void setup() throws Exception {
         super.initialize();
 
-        httpClientCert = new HTTPClientCertAuthentication();
+        httpClientCert = new HTTPClientCertAuthentication(super.picketBoxManager);
 
         httpClientCert.setUseCNAsPrincipal(true);
-        
-        PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-
-        picketBoxManager.start();
-        
-        httpClientCert.setPicketBoxManager(picketBoxManager);
     }
 
     @Test

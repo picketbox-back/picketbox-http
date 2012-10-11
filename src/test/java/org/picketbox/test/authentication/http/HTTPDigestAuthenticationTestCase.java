@@ -37,9 +37,7 @@ import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.exceptions.FormatException;
 import org.picketbox.core.util.Base64;
 import org.picketbox.core.util.HTTPDigestUtil;
-import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPDigestAuthentication;
-import org.picketbox.http.config.PicketBoxHTTPConfiguration;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
 
@@ -56,16 +54,11 @@ public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest
     @Before
     public void setup() throws Exception {
         super.initialize();
-        httpDigest = new HTTPDigestAuthentication();
+
+        httpDigest = new HTTPDigestAuthentication(super.picketBoxManager);
 
         httpDigest.setRealmName("testrealm@host.com");
         httpDigest.setOpaque("5ccc069c403ebaf9f0171e9517f40e41");
-
-        PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-
-        picketBoxManager.start();
-
-        httpDigest.setPicketBoxManager(picketBoxManager);
     }
 
     @Test

@@ -41,6 +41,7 @@ import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.core.nonce.NonceGenerator;
 import org.picketbox.core.nonce.UUIDNonceGenerator;
 import org.picketbox.core.util.HTTPDigestUtil;
+import org.picketbox.http.PicketBoxHTTPManager;
 
 /**
  * Class that handles HTTP/Digest Authentication
@@ -62,6 +63,10 @@ public class HTTPDigestAuthentication extends AbstractHTTPAuthentication {
      * A simple lookup map of session id versus the nonces issued
      */
     protected ConcurrentMap<String, List<String>> idVersusNonce = new ConcurrentHashMap<String, List<String>>();
+
+    public HTTPDigestAuthentication(PicketBoxHTTPManager securityManager) {
+        super(securityManager);
+    }
 
     public NonceGenerator getNonceGenerator() {
         return nonceGenerator;

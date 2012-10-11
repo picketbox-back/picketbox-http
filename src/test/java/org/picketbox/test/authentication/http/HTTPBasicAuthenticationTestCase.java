@@ -34,9 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.util.Base64;
-import org.picketbox.http.PicketBoxHTTPManager;
 import org.picketbox.http.authentication.HTTPBasicAuthentication;
-import org.picketbox.http.config.PicketBoxHTTPConfiguration;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
 
@@ -53,13 +51,7 @@ public class HTTPBasicAuthenticationTestCase extends AbstractAuthenticationTest 
     @Before
     public void setup() throws Exception {
         super.initialize();
-        httpBasic = new HTTPBasicAuthentication();
-        configuration.authentication();
-        PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-
-        picketBoxManager.start();
-
-        httpBasic.setPicketBoxManager(picketBoxManager);
+        httpBasic = new HTTPBasicAuthentication(super.picketBoxManager);
     }
 
     @Test

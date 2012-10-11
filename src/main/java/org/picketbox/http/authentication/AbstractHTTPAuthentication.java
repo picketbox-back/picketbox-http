@@ -73,8 +73,8 @@ public abstract class AbstractHTTPAuthentication implements HTTPAuthenticationSc
      */
     protected String formErrorPage = "/error.jsp";
 
-    public void setPicketBoxManager(PicketBoxHTTPManager picketBoxManager) {
-        this.picketBoxManager = picketBoxManager;
+    public AbstractHTTPAuthentication(PicketBoxHTTPManager securityManager) {
+        this.picketBoxManager = securityManager;
     }
 
     /**

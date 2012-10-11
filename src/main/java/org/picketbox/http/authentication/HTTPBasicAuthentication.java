@@ -31,6 +31,7 @@ import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.core.util.Base64;
+import org.picketbox.http.PicketBoxHTTPManager;
 
 /**
  * Perform HTTP Basic Authentication
@@ -39,6 +40,10 @@ import org.picketbox.core.util.Base64;
  * @since July 5, 2012
  */
 public class HTTPBasicAuthentication extends AbstractHTTPAuthentication {
+
+    public HTTPBasicAuthentication(PicketBoxHTTPManager securityManager) {
+        super(securityManager);
+    }
 
     /*
      * (non-Javadoc)

@@ -22,8 +22,6 @@
 package org.picketbox.http.filters;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -45,7 +43,6 @@ import org.picketbox.core.ctx.SecurityContextPropagation;
 import org.picketbox.core.exceptions.AuthenticationException;
 import org.picketbox.core.exceptions.ProcessingException;
 import org.picketbox.http.PicketBoxHTTPManager;
-import org.picketbox.http.PicketBoxHTTPMessages;
 import org.picketbox.http.authentication.HTTPAuthenticationScheme;
 import org.picketbox.http.authentication.HTTPBasicAuthentication;
 import org.picketbox.http.authentication.HTTPClientCertAuthentication;
@@ -65,19 +62,11 @@ import org.picketbox.http.wrappers.ResponseWrapper;
  * @since Jul 10, 2012
  */
 public class DelegatingSecurityFilter implements Filter {
+
     private PicketBoxHTTPManager securityManager;
-
-    private FilterConfig filterConfig;
-
     private HTTPAuthenticationScheme authenticationScheme;
 
     public DelegatingSecurityFilter() {
-    }
-
-    public DelegatingSecurityFilter(HTTPAuthenticationScheme authenticationScheme, PicketBoxHTTPManager securityManager) {
-        this.securityManager = securityManager;
-        this.authenticationScheme = authenticationScheme;
-        this.authenticationScheme.setPicketBoxManager(this.securityManager);
     }
 
     @Override
@@ -87,79 +76,39 @@ public class DelegatingSecurityFilter implements Filter {
             return;
         }
 
-        this.filterConfig = fc;
+        ServletContext sc = fc.getServletContext();
 
-        ServletContext sc = filterConfig.getServletContext();
-
-        Map<String, Object> contextData = new HashMap<String, Object>();
-        contextData.put(PicketBoxConstants.SERVLET_CONTEXT, sc);
-
-        // Let us try the servlet context
         String authValue = sc.getInitParameter(PicketBoxConstants.AUTHENTICATION_KEY);
-        AuthorizationManager authorizationManager = null;
-        HTTPConfigurationBuilder configuration = null;
-
+        String authzValue = sc.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
         String configurationProvider = sc.getInitParameter(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER);
         String userAttributeName = sc.getInitParameter(PicketBoxConstants.USER_ATTRIBUTE_NAME);
 
-        if (authValue != null && !authValue.isEmpty()) {
-            if (configurationProvider == null) {
-                // Look for auth mgr also
-                String authMgrStr = sc.getInitParameter(PicketBoxConstants.AUTH_MGR);
-                // Look for auth mgr also
-                String authzMgrStr = sc.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
+        HTTPConfigurationBuilder configuration = null;
 
-                if (authzMgrStr != null) {
-                    authorizationManager = getAuthzMgr(authzMgrStr);
-                    authorizationManager.start();
-                    contextData.put(PicketBoxConstants.AUTHZ_MGR, authorizationManager);
-                }
-            }
-
-            authenticationScheme = getAuthenticationScheme(authValue, contextData);
-        } else {
-            String loader = filterConfig.getInitParameter(PicketBoxConstants.AUTH_SCHEME_LOADER);
-
-            if (loader == null) {
-                throw PicketBoxHTTPMessages.MESSAGES.missingRequiredInitParameter(PicketBoxConstants.AUTH_SCHEME_LOADER);
-            }
-
-            if (configurationProvider == null) {
-                String authManagerStr = filterConfig.getInitParameter(PicketBoxConstants.AUTH_MGR);
-                if (authManagerStr != null && !authManagerStr.isEmpty()) {
-                }
-                String authzManagerStr = filterConfig.getInitParameter(PicketBoxConstants.AUTHZ_MGR);
-                if (authzManagerStr != null && authzManagerStr.isEmpty()) {
-                    authorizationManager = getAuthzMgr(authzManagerStr);
-                    authorizationManager.start();
-                    contextData.put(PicketBoxConstants.AUTHZ_MGR, authorizationManager);
-                }
-            }
-
-            authenticationScheme = (HTTPAuthenticationScheme) SecurityActions.instance(getClass(), loader);
-        }
-
+        // a ConfigurationBuilderProvider was provided, let's build the configuration using it.
         if (configurationProvider != null) {
-            configuration = ((ConfigurationBuilderProvider) SecurityActions.instance(getClass(), configurationProvider)).getBuilder(sc);
+            configuration = ((ConfigurationBuilderProvider) SecurityActions.instance(getClass(), configurationProvider))
+                    .getBuilder(sc);
         } else {
             configuration = new HTTPConfigurationBuilder();
-
-            configuration.authorization().manager(authorizationManager);
         }
 
+        configuration.authorization().manager(getAuthorizationManager(authzValue));
         configuration.sessionManager().userAttributeName(userAttributeName);
 
         this.securityManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-
         this.securityManager.start();
 
-        authenticationScheme.setPicketBoxManager(this.securityManager);
-
         sc.setAttribute(PicketBoxConstants.PICKETBOX_MANAGER, this.securityManager);
+
+        this.authenticationScheme = getAuthenticationScheme(authValue);
     }
 
-    /* (non-Javadoc)
-     * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse,
+     * javax.servlet.FilterChain)
      */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
@@ -189,7 +138,9 @@ public class DelegatingSecurityFilter implements Filter {
     }
 
     /**
-     * <p>Clear the propagated {@link SecurityContext}.</p
+     * <p>
+     * Clear the propagated {@link SecurityContext}.
+     * </p
      *
      * @throws ServletException
      */
@@ -202,7 +153,9 @@ public class DelegatingSecurityFilter implements Filter {
     }
 
     /**
-     * <p>Propagates the authenticated {@link UserContext}.</p>
+     * <p>
+     * Propagates the authenticated {@link UserContext}.
+     * </p>
      *
      * @param httpRequest
      * @throws ServletException
@@ -227,10 +180,8 @@ public class DelegatingSecurityFilter implements Filter {
         boolean authorize = this.securityManager.authorize(getAuthenticatedUser(httpRequest),
                 createWebResource(httpRequest, httpResponse));
 
-        if (!authorize) {
-            if (!httpResponse.isCommitted()) {
-                httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
-            }
+        if (!authorize && !httpResponse.isCommitted()) {
+            httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
         }
     }
 
@@ -285,36 +236,54 @@ public class DelegatingSecurityFilter implements Filter {
 
     @Override
     public void destroy() {
-        this.filterConfig = null;
         if (this.securityManager != null) {
             this.securityManager.stop();
         }
     }
 
-    private HTTPAuthenticationScheme getAuthenticationScheme(String value, Map<String, Object> contextData)
-            throws ServletException {
-        if (value.equalsIgnoreCase(PicketBoxConstants.BASIC)) {
-            return new HTTPBasicAuthentication();
+    /**
+     * <p>
+     * Returns a {@link HTTPAuthenticationScheme} instance for the given value. Possible values are BASIC, DIGEST AND
+     * CLIENT_CERT. If the provided value is null or does not match any of the expected a {@link HTTPFormAuthentication}
+     * instance is returned.
+     * </p>
+     *
+     * @param value
+     * @return
+     * @throws ServletException
+     */
+    private HTTPAuthenticationScheme getAuthenticationScheme(String value) throws ServletException {
+        if (value != null) {
+            if (value.equalsIgnoreCase(PicketBoxConstants.BASIC)) {
+                return new HTTPBasicAuthentication(this.securityManager);
+            }
+            if (value.equalsIgnoreCase(PicketBoxConstants.DIGEST)) {
+                return new HTTPDigestAuthentication(this.securityManager);
+            }
+            if (value.equalsIgnoreCase(PicketBoxConstants.CLIENT_CERT)) {
+                return new HTTPClientCertAuthentication(this.securityManager);
+            }
         }
-        if (value.equalsIgnoreCase(PicketBoxConstants.DIGEST)) {
-            return new HTTPDigestAuthentication();
-        }
-        if (value.equalsIgnoreCase(PicketBoxConstants.CLIENT_CERT)) {
-            return new HTTPClientCertAuthentication();
-        }
-
-        return new HTTPFormAuthentication();
+        return new HTTPFormAuthentication(this.securityManager);
     }
 
-    private AuthorizationManager getAuthzMgr(String value) {
-        if (value.equalsIgnoreCase("Drools")) {
-            return (AuthorizationManager) SecurityActions.instance(getClass(),
-                    "org.picketbox.drools.authorization.PicketBoxDroolsAuthorizationManager");
-        } else if (value.equalsIgnoreCase("Simple")) {
-            return new SimpleAuthorizationManager();
+    /**
+     * <p>
+     * Returns a {@link AuthorizationManager} instance given the specified value. Possible values are drools and simple.
+     * </p>
+     *
+     * @param value
+     * @return
+     */
+    private AuthorizationManager getAuthorizationManager(String value) {
+        if (value != null) {
+            if (value.equalsIgnoreCase("drools")) {
+                return (AuthorizationManager) SecurityActions.instance(getClass(),
+                        "org.picketbox.drools.authorization.PicketBoxDroolsAuthorizationManager");
+            } else if (value.equalsIgnoreCase("simple")) {
+                return new SimpleAuthorizationManager();
+            }
         }
-
-        return (AuthorizationManager) SecurityActions.instance(getClass(),
-                "org.picketbox.drools.authorization.PicketBoxDroolsAuthorizationManager");
+        return null;
     }
 }

@@ -28,6 +28,7 @@ import org.picketbox.core.Credential;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.authentication.credential.UsernamePasswordCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
+import org.picketbox.http.PicketBoxHTTPManager;
 
 /**
  * Perform HTTP Form Authentication
@@ -36,6 +37,10 @@ import org.picketbox.core.exceptions.AuthenticationException;
  * @since July 9, 2012
  */
 public class HTTPFormAuthentication extends AbstractHTTPAuthentication {
+
+    public HTTPFormAuthentication(PicketBoxHTTPManager securityManager) {
+        super(securityManager);
+    }
 
     /*
      * (non-Javadoc)

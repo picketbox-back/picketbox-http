@@ -35,6 +35,7 @@ import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.authentication.credential.CertificateCredential;
 import org.picketbox.core.authentication.credential.TrustedUsernameCredential;
 import org.picketbox.core.exceptions.AuthenticationException;
+import org.picketbox.http.PicketBoxHTTPManager;
 
 /**
  * Perform HTTP Client Certificate Authentication
@@ -49,6 +50,10 @@ public class HTTPClientCertAuthentication extends AbstractHTTPAuthentication {
      */
     protected boolean useCertificateValidation = false;
     private boolean useCNAsPrincipal;
+
+    public HTTPClientCertAuthentication(PicketBoxHTTPManager securityManager) {
+        super(securityManager);
+    }
 
     /**
      * Use Certificate validation directly rather than username/cred model. Default is false.
