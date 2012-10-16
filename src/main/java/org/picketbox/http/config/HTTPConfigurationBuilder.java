@@ -22,6 +22,7 @@
 
 package org.picketbox.http.config;
 
+import org.picketbox.core.config.AuthenticationConfigurationBuilder;
 import org.picketbox.core.config.ConfigurationBuilder;
 import org.picketbox.core.config.PicketBoxConfiguration;
 
@@ -38,6 +39,14 @@ public class HTTPConfigurationBuilder extends ConfigurationBuilder {
     public HTTPConfigurationBuilder() {
         this.protectedResource = new ProtectedResourceConfigurationBuilder(this);
         this.sessionManager = new HTTPSessionManagerConfigurationBuilder(this);
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.config.ConfigurationBuilder#authentication()
+     */
+    @Override
+    public HTTPAuthenticationConfigurationBuilder authentication() {
+        return (HTTPAuthenticationConfigurationBuilder) super.authentication();
     }
 
     /**
@@ -59,5 +68,13 @@ public class HTTPConfigurationBuilder extends ConfigurationBuilder {
     public PicketBoxConfiguration doBuild() {
         return new PicketBoxHTTPConfiguration(this.authentication().build(), this.authorization().build(), this
                 .identityManager().build(), this.protectedResource.build(), this.sessionManager().build(), this.eventManager().build());
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketbox.core.config.ConfigurationBuilder#createAuthenticationBuilder()
+     */
+    @Override
+    protected AuthenticationConfigurationBuilder createAuthenticationBuilder() {
+        return  new HTTPAuthenticationConfigurationBuilder(this);
     }
 }

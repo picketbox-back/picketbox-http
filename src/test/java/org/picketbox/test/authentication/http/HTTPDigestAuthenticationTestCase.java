@@ -22,24 +22,26 @@
 package org.picketbox.test.authentication.http;
 
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.Principal;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.picketbox.core.UserContext;
+import org.picketbox.core.authentication.AuthenticationStatus;
 import org.picketbox.core.authentication.DigestHolder;
 import org.picketbox.core.authentication.PicketBoxConstants;
 import org.picketbox.core.exceptions.FormatException;
 import org.picketbox.core.util.Base64;
 import org.picketbox.core.util.HTTPDigestUtil;
-import org.picketbox.http.PicketBoxHTTPManager;
+import org.picketbox.http.HTTPUserContext;
 import org.picketbox.http.authentication.HTTPDigestAuthentication;
-import org.picketbox.http.config.PicketBoxHTTPConfiguration;
+import org.picketbox.http.authentication.HTTPDigestCredential;
+import org.picketbox.http.config.HTTPConfigurationBuilder;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
 
@@ -51,21 +53,15 @@ import org.picketbox.test.http.TestServletResponse;
  */
 public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest {
 
-    private HTTPDigestAuthentication httpDigest = null;
-
     @Before
     public void setup() throws Exception {
         super.initialize();
-        httpDigest = new HTTPDigestAuthentication();
-
-        httpDigest.setRealmName("testrealm@host.com");
-        httpDigest.setOpaque("5ccc069c403ebaf9f0171e9517f40e41");
-
-        PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-
-        picketBoxManager.start();
-
-        httpDigest.setPicketBoxManager(picketBoxManager);
+    }
+    
+    @Override
+    protected void doConfigureManager(HTTPConfigurationBuilder configuration) {
+        configuration.authentication().digest().realm("testrealm@host.com");
+        configuration.authentication().digest().opaque("5ccc069c403ebaf9f0171e9517f40e41");
     }
 
     @Test
@@ -90,8 +86,14 @@ public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest
         req.setRequestURI(req.getContextPath() + "/index.html");
 
         // Call the server to get the digest challenge
-        Principal result = httpDigest.authenticate(req, resp);
-        assertNull(result);
+        UserContext authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp,
+                new HTTPDigestCredential(req, resp)));
+        
+        // mechanism is telling us that we need to continue with the authentication.
+        assertNotNull(authenticatedUser);
+        Assert.assertFalse(authenticatedUser.isAuthenticated());
+        Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
+        Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.CONTINUE);
 
         String authorizationHeader = resp.getHeader(PicketBoxConstants.HTTP_WWW_AUTHENTICATE);
         authorizationHeader = authorizationHeader.substring(7);
@@ -102,17 +104,27 @@ public class HTTPDigestAuthenticationTestCase extends AbstractAuthenticationTest
 
         // Get Positive Authentication
         req.addHeader(PicketBoxConstants.HTTP_AUTHORIZATION_HEADER, "Digest " + getPositive(digest));
-        result = httpDigest.authenticate(req, resp);
 
-        assertNotNull(result);
+        authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp,
+                new HTTPDigestCredential(req, resp)));
+
+        assertNotNull(authenticatedUser);
+        Assert.assertTrue(authenticatedUser.isAuthenticated());
+        Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
+        Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.SUCCESS);
 
         req.clearHeaders();
         req.getSession().setAttribute(PicketBoxConstants.SUBJECT, null);
         // Get Negative Authentication
         req.addHeader(PicketBoxConstants.HTTP_AUTHORIZATION_HEADER, "Digest " + getNegative());
-        result = httpDigest.authenticate(req, resp);
-        assertNull(result);
+        
+        authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp,
+                new HTTPDigestCredential(req, resp)));
 
+        assertNotNull(authenticatedUser);
+        Assert.assertFalse(authenticatedUser.isAuthenticated());
+        Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
+        Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.INVALID_CREDENTIALS);
         String digestHeader = resp.getHeader(PicketBoxConstants.HTTP_WWW_AUTHENTICATE);
         assertTrue(digestHeader.startsWith("Digest realm="));
     }

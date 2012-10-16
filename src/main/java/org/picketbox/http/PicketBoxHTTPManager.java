@@ -87,10 +87,12 @@ public final class PicketBoxHTTPManager extends AbstractPicketBoxManager {
                 if (!protectedResource.isAllowed(subject)) {
                     return false;
                 }
+
+                return super.authorize(subject, resource);
             }
         }
 
-        return super.authorize(subject, resource);
+        return true;
     }
 
     private WebResource createWebResource(HttpServletRequest request, HttpServletResponse response) {

@@ -19,26 +19,34 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 package org.picketbox.http.authentication;
 
-import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import org.picketbox.core.Credential;
 
 /**
- * An interface that can load {@link HTTPAuthenticationScheme} from a DI/IOC environment
+ * <p>{@link Credential} interface for HTTP authentication schemes.</p>
  *
- * @author anil saldhana
- * @since Jul 10, 2012
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  */
-public interface HTTPAuthenticationSchemeLoader {
+public interface HttpServletCredential extends Credential {
+
     /**
-     * Get the {@link HTTPAuthenticationScheme}
+     * <p>Returns the {@link HttpServletRequest}.</p>
      *
-     * @param contextData contextual data such as {@link ServletContext}
-     * @return an instance of {@link HTTPAuthenticationScheme}
-     * @throws {@link ServletException}
+     * @return
      */
-    HTTPAuthenticationScheme get(Map<String, Object> contextData) throws ServletException;
+    HttpServletRequest getRequest();
+
+    /**
+     * <p>Returns the {@link HttpServletResponse}.</p>
+     *
+     * @return
+     */
+    HttpServletResponse getResponse();
+
 }
