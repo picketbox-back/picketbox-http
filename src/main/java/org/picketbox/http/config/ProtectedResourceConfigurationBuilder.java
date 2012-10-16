@@ -86,6 +86,11 @@ public class ProtectedResourceConfigurationBuilder extends AbstractPicketBoxHTTP
         return this;
     }
 
+    public ProtectedResourceConfigurationBuilder resource(String pattern, ProtectedResourceConstraint constraint, String... roles) {
+        this.resources.add(new ProtectedResource(pattern, constraint, roles));
+        return this;
+    }
+
     @Override
     protected void setDefaults() {
         if (this.manager == null) {
@@ -97,4 +102,5 @@ public class ProtectedResourceConfigurationBuilder extends AbstractPicketBoxHTTP
     protected ProtectedResourceConfig doBuild() {
         return new ProtectedResourceConfig(this.manager, this.resources);
     }
+
 }

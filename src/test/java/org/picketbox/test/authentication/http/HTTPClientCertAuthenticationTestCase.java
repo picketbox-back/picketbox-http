@@ -22,51 +22,60 @@
 package org.picketbox.test.authentication.http;
 
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.Principal;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.picketbox.core.UserContext;
+import org.picketbox.core.authentication.AuthenticationStatus;
 import org.picketbox.core.authentication.PicketBoxConstants;
-import org.picketbox.http.PicketBoxHTTPManager;
+import org.picketbox.http.HTTPUserContext;
 import org.picketbox.http.authentication.HTTPClientCertAuthentication;
-import org.picketbox.http.config.PicketBoxHTTPConfiguration;
+import org.picketbox.http.authentication.HTTPClientCertCredential;
+import org.picketbox.http.config.HTTPConfigurationBuilder;
 import org.picketbox.test.http.TestServletRequest;
 import org.picketbox.test.http.TestServletResponse;
 
 /**
  * Unit test the {@link HTTPClientCertAuthentication} class
- *
+ * 
  * @author anil saldhana
  * @since July 9, 2012
  */
 public class HTTPClientCertAuthenticationTestCase extends AbstractAuthenticationTest {
 
-    private HTTPClientCertAuthentication httpClientCert = null;
-
     @Before
-    public void setup() throws Exception {
+    public void onSetup() throws Exception {
         super.initialize();
-
-        httpClientCert = new HTTPClientCertAuthentication();
-
-        httpClientCert.setUseCNAsPrincipal(true);
-        
-        PicketBoxHTTPManager picketBoxManager = new PicketBoxHTTPManager((PicketBoxHTTPConfiguration) configuration.build());
-
-        picketBoxManager.start();
-        
-        httpClientCert.setPicketBoxManager(picketBoxManager);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.picketbox.test.authentication.http.AbstractAuthenticationTest#doConfigureManager(org.picketbox.http.config.
+     * HTTPConfigurationBuilder)
+     */
+    @Override
+    protected void doConfigureManager(HTTPConfigurationBuilder configuration) {
+        configuration.authentication().clientCert().useCNAsPrincipal();
+    }
+
+    /**
+     * <p>
+     * Tests if the authentication is successful when validating the Subject CN from the provided certificate. By default, the
+     * {@link HTTPClientCertAuthentication} is configured with useCNAsPrincipal == true.
+     * </p>
+     * 
+     * @throws Exception
+     */
     @Test
-    public void testHttpForm() throws Exception {
+    public void testAuthenticationUsingCNAsUserName() throws Exception {
         TestServletRequest req = new TestServletRequest(new InputStream() {
             @Override
             public int read() throws IOException {
@@ -93,15 +102,25 @@ public class HTTPClientCertAuthenticationTestCase extends AbstractAuthentication
 
         assertNotNull(cert);
 
-        // Call the server to get the digest challenge
-        Principal result = httpClientCert.authenticate(req, resp);
+        UserContext authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp,
+                new HTTPClientCertCredential(req, resp)));
 
-        assertNull(result);
+        // mechanism is telling us that we need to continue with the authentication.
+        assertNotNull(authenticatedUser);
+        Assert.assertFalse(authenticatedUser.isAuthenticated());
+        Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
+        Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.CONTINUE);
 
         // Now set the certificate
         req.setAttribute(PicketBoxConstants.HTTP_CERTIFICATE, new X509Certificate[] { cert });
 
-        result = httpClientCert.authenticate(req, resp);
-        assertNotNull(result);
+        authenticatedUser = this.picketBoxManager.authenticate(new HTTPUserContext(req, resp, new HTTPClientCertCredential(req,
+                resp)));
+
+        assertNotNull(authenticatedUser);
+        Assert.assertTrue(authenticatedUser.isAuthenticated());
+        Assert.assertNotNull(authenticatedUser.getAuthenticationResult().getStatus());
+        Assert.assertEquals(authenticatedUser.getAuthenticationResult().getStatus(), AuthenticationStatus.SUCCESS);
     }
+
 }

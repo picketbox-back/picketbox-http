@@ -22,6 +22,11 @@
 
 package org.picketbox.test.config;
 
+import java.io.InputStream;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
 import org.picketlink.idm.IdentityManager;
 import org.picketlink.idm.internal.DefaultIdentityManager;
 import org.picketlink.idm.internal.file.FileBasedIdentityStore;
@@ -43,6 +48,21 @@ public class IdentityManagerInitializer {
         IdentityManager identityManager = new DefaultIdentityManager(theStore);
         
         User jbidTestUser = identityManager.createUser("jbid test");
+        User certUser = identityManager.createUser("CN=jbid test, OU=JBoss, O=JBoss, C=US");
+        
+        InputStream bis = Thread.currentThread().getContextClassLoader().getResourceAsStream("cert/servercert.txt");
+
+        CertificateFactory cf = null;
+        
+        try {
+            cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(bis);
+            identityManager.updateCertificate(jbidTestUser, cert);
+            identityManager.updateCertificate(certUser, cert);
+            bis.close();
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating user certificate.", e);
+        }
         
         User adminUser = identityManager.createUser("Aladdin");
 

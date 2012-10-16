@@ -79,10 +79,9 @@ public class DelegatingSecurityFilterHTTPBasicUnitTestCase extends EmbeddedWebSe
         System.setProperty(PicketBoxConstants.CREDENTIAL, "Open Sesame");
 
         FilterHolder filterHolder = new FilterHolder(DelegatingSecurityFilter.class);
-        filterHolder.setInitParameter(PicketBoxConstants.AUTH_SCHEME_LOADER, HTTPBasicAuthentication.class.getName());
+        
+        webapp.setInitParameter(PicketBoxConstants.AUTHENTICATION_KEY, PicketBoxConstants.BASIC);
         webapp.setInitParameter(PicketBoxConstants.HTTP_CONFIGURATION_PROVIDER, HTTPDigestConfigurationProvider.class.getName());
-
-        // context.addFilter(filterHolder, "/", 1);
 
         ServletHandler servletHandler = new ServletHandler();
         servletHandler.addFilter(filterHolder, createFilterMapping("/", filterHolder));
